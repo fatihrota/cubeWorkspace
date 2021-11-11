@@ -1,0 +1,3 @@
+UARTCommandConsole.c:93:6:vUARTCommandConsoleStart	24	static
+UARTCommandConsole.c:107:6:prvUARTCommandConsoleTask	40	static,ignoring_inline_asm
+UARTCommandConsole.c:223:6:vOutputString	24	static

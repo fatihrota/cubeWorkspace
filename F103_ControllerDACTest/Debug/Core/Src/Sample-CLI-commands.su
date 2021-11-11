@@ -1,0 +1,6 @@
+Sample-CLI-commands.c:177:6:vRegisterSampleCLICommands	8	static
+Sample-CLI-commands.c:205:19:prvTaskStatsCommand	40	static,ignoring_inline_asm
+Sample-CLI-commands.c:265:20:prvRunTimeStatsCommand	40	static,ignoring_inline_asm
+Sample-CLI-commands.c:306:19:prvThreeParameterEchoCommand	56	static,ignoring_inline_asm
+Sample-CLI-commands.c:373:19:prvParameterEchoCommand	48	static,ignoring_inline_asm
+Sample-CLI-commands.c:443:19:prvDacCommand	64	static,ignoring_inline_asm

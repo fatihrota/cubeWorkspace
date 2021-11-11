@@ -1,0 +1,7 @@
+timeouts.c:204:1:sys_timeout	24	static
+timeouts.c:175:6:sys_timeouts_init	16	static
+timeouts.c:164:1:cyclic_timer	8	static
+timeouts.c:273:1:sys_untimeout	12	static
+timeouts.c:313:1:sys_check_timeouts	24	static
+timeouts.c:373:1:sys_restart_timeouts	8	static
+timeouts.c:385:1:sys_timeouts_sleeptime	8	static

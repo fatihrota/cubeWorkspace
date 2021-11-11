@@ -1,0 +1,19 @@
+14:31:25 **** Build of configuration Debug for project highSpeedDaq_init ****
+make -j16 all 
+arm-none-eabi-gcc -o "highSpeedDaq_init.elf" @"objects.list"   -mcpu=cortex-m3 -T"C:\Users\ROTA0101\STM32CubeIDE\workspace_1.3.0\highSpeedDaq_init\STM32F107VCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="highSpeedDaq_init.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: highSpeedDaq_init.elf
+ 
+arm-none-eabi-size   highSpeedDaq_init.elf 
+arm-none-eabi-objdump -h -S  highSpeedDaq_init.elf  > "highSpeedDaq_init.list"
+arm-none-eabi-objcopy  -O binary  highSpeedDaq_init.elf  "highSpeedDaq_init.bin"
+   text	   data	    bss	    dec	    hex	filename
+  34812	    484	   3948	  39244	   994c	highSpeedDaq_init.elf
+Finished building: default.size.stdout
+ 
+Finished building: highSpeedDaq_init.bin
+ 
+Finished building: highSpeedDaq_init.list
+ 
+
+14:31:26 Build Finished. 0 errors, 0 warnings. (took 736ms)
+

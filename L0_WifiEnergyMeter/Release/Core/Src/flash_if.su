@@ -1,0 +1,5 @@
+flash_if.c:17:6:FLASH_If_Init	8	static
+flash_if.c:34:10:FLASH_If_Erase	32	static
+flash_if.c:77:10:FLASH_If_Write	32	static
+flash_if.c:120:10:FLASH_If_GetWriteProtectionStatus	32	static
+flash_if.c:156:10:FLASH_If_WriteProtectionConfig	56	static

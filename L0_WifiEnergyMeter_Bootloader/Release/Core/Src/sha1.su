@@ -1,0 +1,4 @@
+sha1.c:53:6:sha1_transform	376	static
+sha1.c:111:6:sha1_init	0	static
+sha1.c:128:6:sha1_update	16	static
+sha1.c:144:6:sha1_final	16	static

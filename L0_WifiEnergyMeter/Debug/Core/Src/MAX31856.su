@@ -1,0 +1,14 @@
+MAX31856.c:90:6:max31856_select	16	static
+MAX31856.c:96:6:max31856_deselect	16	static
+MAX31856.c:109:6:max31856_wr_reg	64	static
+MAX31856.c:132:6:max31856_rd_reg	80	static
+MAX31856.c:170:6:max31856_read_raw	16	static
+MAX31856.c:176:6:max31856_read_raw_buffered	16	static
+MAX31856.c:182:6:max31856_read_conf	24	static
+MAX31856.c:192:6:max31856_write_conf	24	static
+MAX31856.c:201:9:max31856_read	32	static
+MAX31856.c:236:6:sampleExtCj	32	static
+MAX31856.c:281:6:max31856_nonmuxed_sample	56	static
+MAX31856.c:366:5:max31856_init	32	static
+MAX31856.c:389:6:tc_init	40	static
+MAX31856.c:448:6:max31856_process	8	static

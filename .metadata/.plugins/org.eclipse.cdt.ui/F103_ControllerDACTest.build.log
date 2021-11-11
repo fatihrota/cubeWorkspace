@@ -1,0 +1,10 @@
+15:46:48 **** Incremental Build of configuration Debug for project F103_ControllerDACTest ****
+make -j16 all 
+arm-none-eabi-size   F103_ControllerDACTest.elf 
+   text	   data	    bss	    dec	    hex	filename
+  33876	    500	   9396	  43772	   aafc	F103_ControllerDACTest.elf
+Finished building: default.size.stdout
+ 
+
+15:46:48 Build Finished. 0 errors, 0 warnings. (took 242ms)
+

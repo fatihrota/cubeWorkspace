@@ -1,0 +1,12 @@
+aes.c:182:13:KeyExpansion	32	static
+aes.c:255:13:AddRoundKey	12	static
+aes.c:269:13:SubBytes	12	static
+aes.c:284:13:ShiftRows	0	static
+aes.c:312:16:xtime	0	static
+aes.c:377:13:InvSubBytes	12	static
+aes.c:389:13:InvShiftRows	0	static
+aes.c:419:13:Cipher	48	static
+aes.c:444:13:InvCipher	80	static
+aes.c:512:13:XorWithIv	8	static
+aes.c:521:6:AES_CBC_encrypt_buffer	32	static
+aes.c:558:6:AES_CBC_decrypt_buffer	32	static

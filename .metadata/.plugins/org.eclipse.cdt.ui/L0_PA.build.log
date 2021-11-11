@@ -1,0 +1,40 @@
+08:52:59 **** Incremental Build of configuration Release for project L0_PA ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/stpm3x.c" -mcpu=cortex-m0plus -std=gnu11 -DUSE_HAL_DRIVER -DSTM32L073xx -c -I../Core/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L0xx/Include -I../Drivers/CMSIS/Include -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/stpm3x.d" -MT"Core/Src/stpm3x.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/stpm3x.o"
+In file included from ../Core/Src/stpm3x.c:24:0:
+../Core/Src/stpm3x.c: In function 'HAL_UART_RxCpltCallback':
+../Core/Inc/debug.h:56:26: warning: implicit declaration of function 'printf' [-Wimplicit-function-declaration]
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/stpm3x.c:76:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Hobba\n");
+  ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/stpm3x.c:76:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Hobba\n");
+  ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/stpm3x.c:76:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Hobba\n");
+  ^~~~~~~~~~
+arm-none-eabi-gcc -o "L0_PA.elf" @"objects.list"   -mcpu=cortex-m0plus -T"C:\Users\ROTA0101\STM32CubeIDE\workspace_1.3.0\L0_PA\STM32L073RZTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="L0_PA.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: L0_PA.elf
+ 
+arm-none-eabi-objdump -h -S  L0_PA.elf  > "L0_PA.list"
+arm-none-eabi-objcopy  -O binary  L0_PA.elf  "L0_PA.bin"
+arm-none-eabi-size   L0_PA.elf 
+   text	   data	    bss	    dec	    hex	filename
+  41796	    528	   9632	  51956	   caf4	L0_PA.elf
+Finished building: default.size.stdout
+ 
+Finished building: L0_PA.bin
+ 
+Finished building: L0_PA.list
+ 
+
+08:53:00 Build Finished. 0 errors, 2 warnings. (took 655ms)
+

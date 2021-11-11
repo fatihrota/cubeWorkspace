@@ -1,0 +1,10 @@
+14:31:22 **** Build of configuration Debug for project LTC ****
+make -j16 all 
+arm-none-eabi-size   LTC.elf 
+   text	   data	    bss	    dec	    hex	filename
+  43704	    488	   3936	  48128	   bc00	LTC.elf
+Finished building: default.size.stdout
+ 
+
+14:31:23 Build Finished. 0 errors, 0 warnings. (took 351ms)
+

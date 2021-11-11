@@ -1,0 +1,227 @@
+/******************************************************************************
+ *
+ *   Copyright (C) Rota Teknik 2019 All Rights Reserved. Confidential
+ *
+ **************************************************************************//**
+ * @file        bus_handlers.c
+ * @brief       Bus Handler implementation. It consists the hook function.
+ * 				When bus_proto received command from master board, it calls the related
+ * 				callback function. If command is board specific, Then defined hook
+ * 				function is called.
+ *
+ * @author      LeventK
+ * @date        2017-11-09
+ *
+ * @ingroup     vts
+ * @{
+ *****************************************************************************/
+
+/*============================================================================*/
+/* Includes                                                                   */
+/*============================================================================*/
+#include "main.h"
+#include "MAX31856.h"
+/*============================================================================*/
+/* Forward declarations                                                       */
+/*============================================================================*/
+
+/*============================================================================*/
+/* Constants and macros                                                       */
+/*============================================================================*/
+
+#define CH_COUNT		8
+#define CH_CONF_LENGTH	8
+
+#define CH_SAMPLE_SIZE	6
+
+/*============================================================================*/
+/* Type definitions                                                           */
+/*============================================================================*/
+
+/*============================================================================*/
+/* Global data                                                                */
+/*============================================================================*/
+
+uint8_t pingReceived = 0;
+uint32_t pingTime = 0xFFFF;
+
+/*============================================================================*/
+/* Module global data                                                         */
+/*============================================================================*/
+
+/*============================================================================*/
+/* Implementation of functions                                                */
+/*============================================================================*/
+
+/**
+ * Get Number of thermocouple channel
+ * @return
+ */
+int bus_get_max_ch()
+{
+	return CH_COUNT;
+}
+
+/*****************************************************************************/
+
+/**
+ * Get Channel configuration data length
+ * @return
+ */
+int bus_get_ch_conf_length()
+{
+	return CH_CONF_LENGTH;
+}
+
+/*****************************************************************************/
+/**
+ * Wrapper for reading sample from channel
+ * @param ch	channel number
+ * @param data	pointer to data
+ * @return
+ */
+int bus_read_ch_sample(uint8_t ch, uint8_t* data)
+{
+	max31856_read_raw_buffered(ch,data);
+	return CH_SAMPLE_SIZE;
+}
+
+/*****************************************************************************/
+/**
+ * Wrapper for reading sample from all channels
+ * @param data	pointer to data
+ * @return
+ */
+int bus_read_all_sample(uint8_t *data)
+{
+	for (int i=0;i<CH_COUNT;i++)
+	{
+		data+=bus_read_ch_sample(i,data);
+	}
+	return CH_COUNT * CH_SAMPLE_SIZE;
+}
+
+/*****************************************************************************/
+/**
+ * Wrapper for reading configuration from channel
+ * @param ch	channel number
+ * @param data	pointer to data
+ * @return
+ */
+int bus_read_ch_conf(uint8_t ch, uint8_t *data)
+{
+	max31856_read_conf(ch,&data[0]);
+	return CH_CONF_LENGTH;
+}
+
+/*****************************************************************************/
+/**
+ * Wrapper for reading configuration from all channels
+ * @param data	pointer to data
+ * @return
+ */
+int bus_read_all_conf(uint8_t *data)
+{
+	for (int i=0;i<CH_COUNT;i++)
+	{
+		max31856_read_conf(i,data);
+		data+=CH_CONF_LENGTH;
+	}
+	return (CH_COUNT*CH_CONF_LENGTH);
+}
+
+/*****************************************************************************/
+/**
+ * Wrapper for writing configuration to channel
+ * @param ch	channel number
+ * @param data	pointer to data
+ * @return
+ */
+int bus_write_ch_conf(uint8_t ch,uint8_t *data)
+{
+	max31856_write_conf(ch,data);
+
+	gConfig.ch_conf[ch].cr0 = data[0];
+	gConfig.ch_conf[ch].cr1 = data[1];
+	for (int i=0; i<4; i++)
+	{
+		gConfig.ch_conf[ch].cjOffset.cjOffBytes[i] = data[i+3];
+	}
+	gConfig.ch_conf[ch].cj_offset = gConfig.ch_conf[ch].cjOffset.cjOff / 0.0625;
+
+	return CH_CONF_LENGTH;
+}
+
+/*****************************************************************************/
+/**
+ * Wrapper for writing configuration to all channels
+ * @param data	pointer to data
+ * @param length (unusued)
+ * @return
+ */
+int bus_write_all_conf(uint8_t *data,uint32_t length)
+{
+	for (int i=0;i<CH_COUNT;i++)
+	{
+		data+=bus_write_ch_conf(i,data);
+	}
+	return CH_COUNT * CH_CONF_LENGTH;
+}
+
+/*****************************************************************************/
+/**
+ * bus save conf
+ * @return
+ */
+int bus_save_conf()
+{
+	conf_save();
+	return 0;
+}
+
+/*****************************************************************************/
+/**
+ * bus_entering_bootlaoder_hook
+ */
+void bus_entering_bootlaoder_hook()
+{
+
+}
+
+/*****************************************************************************/
+/**
+ * bus_ping_received_hook
+ */
+void bus_ping_received_hook()
+{
+	pingReceived = 1;
+	pingTime = HAL_GetTick();
+}
+
+/*****************************************************************************/
+/**
+ * bus_reseting_hook
+ */
+void bus_reseting_hook()
+{
+
+}
+
+/*****************************************************************************/
+/**
+ * bus_rd_info_hook
+ * @param data
+ * @return
+ */
+int bus_rd_info_hook(uint8_t *data)
+{
+
+	return 0;
+}
+
+/**@}*/
+/******************************************************************************/
+/*   Copyright (C) Rota Teknik 2019,  All Rights Reserved. Confidential.      */
+/******************************************************************************/
+
+

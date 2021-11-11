@@ -1,0 +1,10 @@
+13:02:56 **** Incremental Build of configuration Bootloader for project VTS_PA ****
+make all 
+arm-none-eabi-size   VTS_PA.elf 
+   text	   data	    bss	    dec	    hex	filename
+  26656	    184	   4488	  31328	   7a60	VTS_PA.elf
+Finished building: default.size.stdout
+ 
+
+13:02:57 Build Finished. 0 errors, 0 warnings. (took 445ms)
+

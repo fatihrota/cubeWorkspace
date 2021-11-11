@@ -1,0 +1,10 @@
+08:57:17 **** Incremental Build of configuration Release for project L0_WifiEnergyMeter_Bootloader ****
+make -j15 all 
+arm-none-eabi-size   L0_WifiEnergyMeter_Bootloader.elf 
+   text	   data	    bss	    dec	    hex	filename
+  19652	    124	   6772	  26548	   67b4	L0_WifiEnergyMeter_Bootloader.elf
+Finished building: default.size.stdout
+ 
+
+08:57:17 Build Finished. 0 errors, 0 warnings. (took 227ms)
+

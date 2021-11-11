@@ -1,0 +1,23 @@
+/*
+ * ad7768.c
+ *
+ *  Created on: Feb 25, 2021
+ *      Author: ROTA0101
+ */
+
+
+
+void AD7768_writeReg(uint16_t addr, uint8_t value)
+{
+	uint8_t addrArr[2];
+	addrArr[1] = addr & 0xFF;
+	addrArr[0] = addr >> 8;
+
+
+	HAL_GPIO_WritePin(LTC_CS_PIN, LTC_CS_PIN_NO, GPIO_PIN_RESET);
+	HAL_SPI_Transmit(&hspi1, &writeCmd, 1, 1000);
+	HAL_SPI_Transmit(&hspi1, &addrArr[0], 2, 1000);
+	HAL_SPI_Transmit(&hspi1, &value, 1, 1000);
+	HAL_GPIO_WritePin(LTC_CS_PIN, LTC_CS_PIN_NO, GPIO_PIN_SET);
+
+}

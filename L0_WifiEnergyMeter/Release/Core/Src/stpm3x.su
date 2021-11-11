@@ -1,0 +1,4 @@
+stpm3x.c:70:5:stmp3x_read_raw_buffered	8	static
+stpm3x.c:78:6:stpmReset	8	static,ignoring_inline_asm
+stpm3x.c:89:6:stpm_init	16	static
+stpm3x.c:115:6:stpm_Process	40	static

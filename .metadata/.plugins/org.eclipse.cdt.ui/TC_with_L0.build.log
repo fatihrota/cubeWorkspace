@@ -1,0 +1,63 @@
+14:59:51 **** Incremental Build of configuration Release for project TC_with_L0 ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m0plus -std=gnu11 -DUSE_HAL_DRIVER -DSTM32L073xx -c -I../Core/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L0xx/Include -I../Drivers/CMSIS/Include -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:42:26: warning: initialization makes integer from pointer without a cast [-Wint-conversion]
+ #define APPLICATION_VERS "1.0.1"
+                          ^
+../Core/Src/main.c:80:93: note: in expansion of macro 'APPLICATION_VERS'
+ const tAppInfo appinfo __attribute__((section (".app_info"))) = {.length = 0x00, .version = APPLICATION_VERS};
+                                                                                             ^~~~~~~~~~~~~~~~
+../Core/Src/main.c:42:26: note: (near initialization for 'appinfo.version')
+ #define APPLICATION_VERS "1.0.1"
+                          ^
+../Core/Src/main.c:80:93: note: in expansion of macro 'APPLICATION_VERS'
+ const tAppInfo appinfo __attribute__((section (".app_info"))) = {.length = 0x00, .version = APPLICATION_VERS};
+                                                                                             ^~~~~~~~~~~~~~~~
+In file included from ../Core/Src/main.c:25:0:
+../Core/Src/main.c: In function 'main':
+../Core/Inc/debug.h:56:26: warning: implicit declaration of function 'printf' [-Wimplicit-function-declaration]
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/main.c:128:3: note: in expansion of macro 'dbg_printf'
+   dbg_printf("Main APplication\r\n");
+   ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/main.c:128:3: note: in expansion of macro 'dbg_printf'
+   dbg_printf("Main APplication\r\n");
+   ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/main.c:128:3: note: in expansion of macro 'dbg_printf'
+   dbg_printf("Main APplication\r\n");
+   ^~~~~~~~~~
+../Core/Src/main.c:143:17: warning: implicit declaration of function 'EXTCJ_init'; did you mean 'leds_init'? [-Wimplicit-function-declaration]
+    int extcjr = EXTCJ_init();
+                 ^~~~~~~~~~
+                 leds_init
+../Core/Src/main.c:148:4: warning: implicit declaration of function 'tc_init'; did you mean '__sinit'? [-Wimplicit-function-declaration]
+    tc_init(extcjr);
+    ^~~~~~~
+    __sinit
+../Core/Src/main.c:157:4: warning: implicit declaration of function 'max31856_process' [-Wimplicit-function-declaration]
+    max31856_process();
+    ^~~~~~~~~~~~~~~~
+arm-none-eabi-gcc -o "TC_with_L0.elf" @"objects.list"   -mcpu=cortex-m0plus -T"C:\Users\ROTA0101\STM32CubeIDE\workspace_1.3.0\TC_with_L0\STM32L073RZTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="TC_with_L0.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: TC_with_L0.elf
+ 
+arm-none-eabi-objdump -h -S  TC_with_L0.elf  > "TC_with_L0.list"
+arm-none-eabi-objcopy  -O binary  TC_with_L0.elf  "TC_with_L0.bin"
+arm-none-eabi-size   TC_with_L0.elf 
+   text	   data	    bss	    dec	    hex	filename
+  29500	    216	   8744	  38460	   963c	TC_with_L0.elf
+Finished building: default.size.stdout
+ 
+Finished building: TC_with_L0.bin
+ 
+Finished building: TC_with_L0.list
+ 
+
+14:59:52 Build Finished. 0 errors, 6 warnings. (took 662ms)
+

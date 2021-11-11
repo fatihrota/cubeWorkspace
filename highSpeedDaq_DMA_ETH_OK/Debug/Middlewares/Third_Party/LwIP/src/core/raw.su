@@ -1,0 +1,10 @@
+raw.c:128:1:raw_input	48	static
+raw.c:210:1:raw_bind	0	static
+raw.c:234:1:raw_connect	0	static
+raw.c:255:1:raw_recv	0	static
+raw.c:276:1:raw_sendto	40	static
+raw.c:402:1:raw_send	0	static
+raw.c:417:1:raw_remove	0	static
+raw.c:450:1:raw_new	16	static
+raw.c:485:1:raw_new_ip_type	0	static
+raw.c:505:6:raw_netif_ip_addr_changed	8	static

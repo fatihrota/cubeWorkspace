@@ -1,0 +1,11 @@
+ltc2983.c:17:6:LTC_writeReg8	32	static
+ltc2983.c:32:6:LTC_writeReg32	32	static
+ltc2983.c:52:9:LTC_readReg8	32	static
+ltc2983.c:69:10:LTC_readReg32	40	static
+ltc2983.c:91:6:LTC_waitUntilFinish	24	static
+ltc2983.c:103:6:LTC_beginConv	24	static
+ltc2983.c:111:6:LTC_readTemperature	48	static
+ltc2983.c:132:6:LTC_TC_configureChannel	32	static
+ltc2983.c:140:6:LTC_RTD_configureChannel	32	static
+ltc2983.c:148:6:LTC_RTD_configureRSense	32	static
+ltc2983.c:155:6:LTC_init	48	static

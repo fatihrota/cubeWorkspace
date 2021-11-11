@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.ui.externaltools.ProgramBuilderLaunchConfigurationType">
+<booleanAttribute key="org.eclipse.debug.ui.ATTR_LAUNCH_IN_BACKGROUND" value="false"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="C:\Projects\FatihOzay_2019_11_06\PC\RTImageGen\RTImageGen\bin\Debug\RTImageGen.exe"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_RUN_BUILD_KINDS" value="full,incremental,"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_TOOL_ARGUMENTS" value="-m &quot;Release\L0_WifiEnergyMeter.map&quot; -b &quot;Release\L0_WifiEnergyMeter.bin&quot; -on &quot;Release\L0_WifiEnergyMeter.enc.bin&quot; -op &quot;Release\L0_WifiEnergyMeter.crc.bin&quot; -k aes.key"/>
+<booleanAttribute key="org.eclipse.ui.externaltools.ATTR_TRIGGERS_CONFIGURED" value="true"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${build_project}"/>
+</launchConfiguration>

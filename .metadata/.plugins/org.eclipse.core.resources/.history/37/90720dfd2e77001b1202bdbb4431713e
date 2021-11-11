@@ -1,0 +1,15 @@
+/*
+ * ad7768.h
+ *
+ *  Created on: Feb 25, 2021
+ *      Author: ROTA0101
+ */
+
+#ifndef INC_AD7768_H_
+#define INC_AD7768_H_
+
+
+#define ADC_CS_PIN			GPIOD
+#define ADC_CS_PIN_NO		GPIO_PIN_0
+
+#endif /* INC_AD7768_H_ */

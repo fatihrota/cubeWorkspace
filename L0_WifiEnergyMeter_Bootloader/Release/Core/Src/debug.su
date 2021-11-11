@@ -1,0 +1,3 @@
+debug.c:71:6:debug_init	8	static
+debug.c:79:6:debug_transmit_buffer	24	static
+debug.c:94:1:__io_putchar	8	static

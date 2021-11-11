@@ -1,0 +1,6 @@
+serial.c:68:16:xSerialPortInitMinimal	24	static
+serial.c:93:22:xSerialGetChar	24	static
+serial.c:111:6:vSerialPutString	32	static
+serial.c:135:22:xSerialPutChar	32	static
+serial.c:157:6:vSerialClose	16	static
+serial.c:163:6:HAL_UART_RxCpltCallback	24	static

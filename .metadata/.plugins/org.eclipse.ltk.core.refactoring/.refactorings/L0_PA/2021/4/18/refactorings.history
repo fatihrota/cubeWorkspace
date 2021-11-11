@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;L0_PA/Core/Inc/rt_config_tc_board.h&apos; to &apos;rt_config_pa_board.h&apos;" description="Rename resource &apos;rt_config_tc_board.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Inc/rt_config_tc_board.h" name="rt_config_pa_board.h" stamp="1619518414504" updateReferences="true"/>
+</session>

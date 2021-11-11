@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;LTC/Core/Inc/ltc2893.h&apos; to &apos;ltc2983.h&apos;" description="Rename resource &apos;ltc2893.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Inc/ltc2893.h" name="ltc2983.h" stamp="1612509685558" updateReferences="true"/>
+</session>
