@@ -1,0 +1,1456 @@
+/******************************************************************************
+ *
+ *   Copyright (C) Rota Teknik 2019 All Rights Reserved. Confidential
+ *
+ **************************************************************************//**
+ * @file        MAX31856.h
+ * @brief       MAX31856 chip implementation.
+ *
+ * @author      LeventK
+ * @date        2017-07-31
+ *
+ * @ingroup     vts
+ * @{
+ *****************************************************************************/
+
+/*============================================================================*/
+/* Includes                                                                   */
+/*============================================================================*/
+
+#include "MAX31856.h"
+#include "ext_cj.h"
+#include "leds.h"
+#include "rt_config.h"
+#include <string.h>
+#include <math.h>
+#include "conf.h"
+#include "debug.h"
+#include "gpio.h"
+
+extern SPI_HandleTypeDef hspi1;
+extern SPI_HandleTypeDef hspi2;
+
+/*============================================================================*/
+/* Forward declarations                                                       */
+/*============================================================================*/
+
+void (*pfnSample)();	/**< Function pointer to read sample data */
+
+/*============================================================================*/
+/* Constants and macros                                                       */
+/*============================================================================*/
+
+#define MAX31856_F_INIT_VALID	0x01
+#define MAX31856_READ_SIZE	6
+#define MAX31856_READ_START	MAX31856_CJTH
+#define MUX_CHANNEL_1		6
+#define MUX_CHANNEL_2		4
+
+/*============================================================================*/
+/* Type definitions                                                           */
+/*============================================================================*/
+
+/**
+ * MAX31856 chip select port-pin structure
+ */
+typedef struct
+{
+	GPIO_TypeDef *CS_Port;
+	uint32_t CS_Pin;
+	uint32_t flags;
+}tMAX31856;
+
+/**
+ * Thermocouple sensor channel port-pin definition
+ */
+tMAX31856 tc[MAX_TC_CHANNELS] =
+{
+		{ TC_CH_1_PORT, TC_CH_1_PIN },
+		{ TC_CH_2_PORT, TC_CH_2_PIN },
+		{ TC_CH_3_PORT, TC_CH_3_PIN },
+		{ TC_CH_4_PORT, TC_CH_4_PIN },
+		{ TC_CH_5_PORT, TC_CH_5_PIN },
+		{ TC_CH_6_PORT, TC_CH_6_PIN },
+		{ TC_CH_7_PORT, TC_CH_7_PIN },
+		{ TC_CH_8_PORT, TC_CH_8_PIN }
+};
+
+/*============================================================================*/
+/* Global data                                                                */
+/*============================================================================*/
+
+const uint8_t gMUX_Channels[2] = {MUX_CHANNEL_1, MUX_CHANNEL_2}; /**< Muxed Board channel definitions */
+uint8_t gMAX31856_buffer[MAX_TC_CHANNELS*MAX31856_READ_SIZE]; /**< MAX31856 Read Buffer */
+uint8_t gExtCjEnabled=0; /**< External cold junction exist / not exist */
+uint8_t gMuxEnabled = 0; /**< Thermocouple board is muxed or not */
+float extColdJOffset[MAX_TC_CHANNELS]; /**< External cold junction offset values */
+
+/** Global data to read sample */
+uint8_t tempData[MAX_TC_CHANNELS][MAX31856_READ_SIZE];
+double tempSkip[MAX_TC_CHANNELS];
+
+double filterData[MAX_TC_CHANNELS];
+double filterCJData[MAX_TC_CHANNELS];
+
+uint8_t extCJTemp[4];
+float extTempf[2];
+volatile uint32_t extCjErrCount = 0;
+extern uint32_t gProcessSample;
+
+/*============================================================================*/
+/* Module global data                                                         */
+/*============================================================================*/
+
+/*============================================================================*/
+/* Implementation of functions                                                */
+/*============================================================================*/
+
+void max31856_select(tMAX31856 *tc)
+{
+	tc->CS_Port->BRR = tc->CS_Pin;
+}
+
+/*****************************************************************************/
+void max31856_deselect(tMAX31856 *tc)
+{
+	tc->CS_Port->BSRR = tc->CS_Pin;
+}
+
+/*****************************************************************************/
+void max31856_deselect_mux_A()
+{
+	TC_MUX_CS_1_PORT->BSRR = TC_MUX_CS_1_PIN;
+}
+
+/*****************************************************************************/
+void max31856_deselect_mux_B()
+{
+	TC_MUX_CS_2_PORT->BSRR = TC_MUX_CS_2_PIN;
+}
+
+/*****************************************************************************/
+void max31856_select_mux_A()
+{
+	TC_MUX_CS_1_PORT->BRR = TC_MUX_CS_1_PIN;
+}
+
+/*****************************************************************************/
+void max31856_select_mux_B()
+{
+	TC_MUX_CS_2_PORT->BRR = TC_MUX_CS_2_PIN;
+}
+
+/*****************************************************************************/
+void max31856_deselect_mux_2()
+{
+	GPIOB->BSRR = GPIO_PIN_12;
+}
+
+/*****************************************************************************/
+void max31856_select_mux_2()
+{
+	GPIOB->BRR = GPIO_PIN_12;
+}
+
+
+/*****************************************************************************/
+/**
+ * MAX31856 write to register
+ * @param ch		channel number
+ * @param reg		register address offset
+ * @param value		value to be written
+ * @param length	length of transmitted data
+ */
+void max31856_wr_reg(tMAX31856 *ch, uint8_t reg, uint8_t *value, uint8_t length)
+{
+	uint8_t txData;
+	uint8_t buffer[16];
+
+	memcpy(buffer,value,length);
+
+	txData = reg + MAX31856_WR_REG;
+
+	max31856_select(ch);
+	HAL_SPI_Transmit(&hspi1,&txData,1,1000);
+	HAL_SPI_Transmit(&hspi1,buffer,length,1000);
+	max31856_deselect(ch);
+}
+
+/*****************************************************************************/
+void max31856_wr_reg_mux_A(tMAX31856 *ch, uint8_t reg, uint8_t *value, uint8_t length)
+{
+	uint8_t txData;
+	uint8_t buffer[16];
+
+	memcpy(buffer,value,length);
+
+	txData = reg + MAX31856_WR_REG;
+
+	max31856_select_mux_A();
+	HAL_SPI_Transmit(&hspi2,&txData,1,1000);
+	HAL_SPI_Transmit(&hspi2,buffer,length,1000);
+	max31856_deselect_mux_A();
+}
+
+/*****************************************************************************/
+void max31856_wr_reg_mux_B(tMAX31856 *ch, uint8_t reg, uint8_t *value, uint8_t length)
+{
+	uint8_t txData;
+	uint8_t buffer[16];
+
+	memcpy(buffer,value,length);
+
+	txData = reg + MAX31856_WR_REG;
+
+	max31856_select_mux_B();
+	HAL_SPI_Transmit(&hspi1,&txData,1,1000);
+	HAL_SPI_Transmit(&hspi1,buffer,length,1000);
+	max31856_deselect_mux_B();
+}
+
+/*****************************************************************************/
+/**
+ * MAX31856 read from register
+ * @param ch		channel number
+ * @param reg		register address offset
+ * @param value		pointer tot value to be read
+ * @param length	length of received data
+ */
+void max31856_rd_reg(tMAX31856 *ch, uint8_t reg, uint8_t *value, uint8_t length)
+{
+	uint8_t txData[16];
+	uint8_t rxData[17];
+
+
+	memset(rxData,0,16);
+	memset(txData,0,16);
+
+	txData[0] = reg;
+
+	max31856_select(ch);
+	//HAL_SPI_TransmitReceive(&hspi1,txData,rxData,length+1,1000);
+	HAL_SPI_Transmit(&hspi1,txData,1,1000);
+	HAL_SPI_Receive(&hspi1,rxData,length,1000);
+	max31856_deselect(ch);
+
+	memcpy(value,rxData,length);
+}
+
+/*****************************************************************************/
+/**
+ * MAX31856 read from register
+ * @param ch		channel number
+ * @param reg		register address offset
+ * @param value		pointer tot value to be read
+ * @param length	length of received data
+ */
+void max31856_rd_reg_mux_A(tMAX31856 *ch, uint8_t reg, uint8_t *value, uint8_t length)
+{
+	uint8_t txData[16];
+	uint8_t rxData[17];
+
+
+	memset(rxData,0,16);
+	memset(txData,0,16);
+
+	txData[0] = reg;
+
+	max31856_select_mux_A();
+	//HAL_SPI_TransmitReceive(&hspi1,txData,rxData,length+1,1000);
+	HAL_SPI_Transmit(&hspi2,txData,1,1000);
+	HAL_SPI_Receive(&hspi2,rxData,length,1000);
+	max31856_deselect_mux_A();
+
+	memcpy(value,rxData,length);
+}
+
+/*****************************************************************************/
+/**
+ * MAX31856 read from register
+ * @param ch		channel number
+ * @param reg		register address offset
+ * @param value		pointer tot value to be read
+ * @param length	length of received data
+ */
+void max31856_rd_reg_mux_B(tMAX31856 *ch, uint8_t reg, uint8_t *value, uint8_t length)
+{
+	uint8_t txData[16];
+	uint8_t rxData[17];
+
+
+	memset(rxData,0,16);
+	memset(txData,0,16);
+
+	txData[0] = reg;
+
+	max31856_select_mux_B();
+	//HAL_SPI_TransmitReceive(&hspi1,txData,rxData,length+1,1000);
+	HAL_SPI_Transmit(&hspi1,txData,1,1000);
+	HAL_SPI_Receive(&hspi1,rxData,length,1000);
+	max31856_deselect_mux_B();
+
+	memcpy(value,rxData,length);
+}
+
+
+
+
+/*
+void max31856_dump_buffer(uint8_t *buffer,uint8_t len)
+{
+	int i=0;
+
+	while(i < len)
+	{
+		uartLen = sprintf(uartBuffer,"%2.2X %2.2X %2.2X %2.2X\n\r",buffer[i+0],buffer[i+1],buffer[i+2],buffer[i+3]);
+		HAL_UART_Transmit(&huart2, uartBuffer, uartLen,0x1000);
+		i = i+4;
+	}
+	HAL_UART_Transmit(&huart2, "\n\r", 2,0x1000);
+}
+ */
+
+/*****************************************************************************/
+void max31856_read_raw(uint32_t ch, uint8_t *raw)
+{
+	max31856_rd_reg(&tc[ch],MAX31856_LTCBH,raw,4);
+}
+
+/*****************************************************************************/
+void max31856_read_raw_buffered(uint32_t ch,uint8_t *raw)
+{
+	memcpy(raw,&gMAX31856_buffer[ch*MAX31856_READ_SIZE],MAX31856_READ_SIZE);
+}
+
+/*****************************************************************************/
+void max31856_read_conf(uint32_t ch, uint8_t *data)
+{
+	if (ch < 8)
+	{
+
+		tc_select_mux_channel_B(ch);
+		max31856_rd_reg_mux_B(&tc[ch],MAX31856_CR0,&data[0],2);
+		max31856_rd_reg_mux_B(&tc[ch],MAX31856_CJTO,&data[2],1);
+	}
+	else if (ch >= 8 && ch < 12)
+	{
+		tc_select_mux_channel_A(ch);
+		max31856_rd_reg_mux_A(&tc[ch],MAX31856_CR0,&data[0],2);
+		max31856_rd_reg_mux_A(&tc[ch],MAX31856_CJTO,&data[2],1);
+	}
+
+	printf("Write config ch : %d CR0: %d CR1: %d\n", ch, data[0], data[1]);
+
+	if (gMuxEnabled)
+	{
+		if (gExtCjEnabled)
+		{
+			memcpy(&data[3], &extColdJOffset[ch], 4);
+		}
+		else
+		{
+			if (ch == 4)
+			{
+				data[2] = extColdJOffset[0] / 0.0625;
+			}
+			else if (ch == 6)
+			{
+				data[2] = extColdJOffset[1] / 0.0625;
+			}
+		}
+
+	}
+	else
+	{
+		memcpy(&data[3], &extColdJOffset[ch], 4);
+	}
+
+
+
+}
+
+/*****************************************************************************/
+void max31856_write_conf(uint32_t ch, uint8_t *data)
+{
+	if (gMuxEnabled)
+	{
+		if (gExtCjEnabled)
+		{
+			memcpy(&extColdJOffset[ch], &data[3], 4);
+		}
+		else
+		{
+			if (ch == 4)
+			{
+				extColdJOffset[0] = data[2] * 0.0625;
+			}
+			else if (ch == 6)
+			{
+				extColdJOffset[1] = data[2] * 0.0625;
+			}
+		}
+	}
+	else
+	{
+		//extColdJOffset[ch] = data[2] * 0.0625;
+		memcpy(&extColdJOffset[ch], &data[3], 4);
+	}
+
+	if (ch < 8)
+	{
+		max31856_wr_reg_mux_B(&tc[ch],MAX31856_CR0,&data[0],2);
+		data[2] = extColdJOffset[ch] / 0.0625;
+		max31856_wr_reg_mux_B(&tc[ch],MAX31856_CJTO,&data[2],1);
+	}
+	else if (ch >= 8 && ch < 12)
+	{
+		max31856_wr_reg_mux_A(&tc[ch],MAX31856_CR0,&data[0],2);
+		data[2] = extColdJOffset[ch] / 0.0625;
+		max31856_wr_reg_mux_A(&tc[ch],MAX31856_CJTO,&data[2],1);
+	}
+
+	printf("Write config ch : %d CR0: %d CR1: %d\n", ch, data[0], data[1]);
+}
+
+/*****************************************************************************/
+uint8_t max31856_read(uint32_t ch,float *value)
+{
+	uint8_t data[4];
+	volatile int32_t raw = 0;
+
+	if (!(tc[ch].flags & MAX31856_F_INIT_VALID))
+	{
+		*value = NAN;
+		return 1;
+	}
+
+	max31856_rd_reg(&tc[ch],MAX31856_LTCBH,data,4);
+
+	if (data[3] == 0) // Fault register
+	{
+		raw = ((uint32_t)data[0])<<24;
+		raw |= ((uint32_t)data[1])<<16;
+		raw |= ((uint32_t)data[2]<<8);
+		raw = raw >> 13;
+
+		*value = (float)raw * 0.0078125f;
+	}
+	else
+	{
+		*value = NAN;
+	}
+	return data[3];
+}
+
+/*****************************************************************************/
+/**
+ * Initialize MAX31856 chip with cr0 c1 configuration
+ * @param ch	Channel number
+ * @param cr0	cr0 configuration
+ * @param cr1	cr1 configuration
+ * @return	0 or 1
+ */
+int max31856_init(tMAX31856 *ch,uint8_t cr0,uint8_t cr1)
+{
+	uint8_t datar[2] = {0};
+
+	for (int i=0;i<10;i++)
+	{
+		max31856_wr_reg(ch,MAX31856_CR0,&cr0,1);
+		max31856_wr_reg(ch,MAX31856_CR1,&cr1,1);
+
+		max31856_rd_reg(ch,MAX31856_CR0,&datar[0],1);
+		max31856_rd_reg(ch,MAX31856_CR1,&datar[1],1);
+		ch->flags |= MAX31856_F_INIT_VALID;
+		if ((cr0 == datar[0]) && (cr1 == datar[1]))
+		{
+			ch->flags |= MAX31856_F_INIT_VALID;
+			return 0;
+		}
+		HAL_Delay(10);
+	}
+	return 1;
+}
+
+/*****************************************************************************/
+/**
+ * Initialize MAX31856 chip with cr0 c1 configuration
+ * @param ch	Channel number
+ * @param cr0	cr0 configuration
+ * @param cr1	cr1 configuration
+ * @return	0 or 1
+ */
+int max31856_init_mux_A(tMAX31856 *ch,uint8_t cr0,uint8_t cr1)
+{
+	uint8_t datar[2] = {0};
+
+	for (int i=0;i<10;i++)
+	{
+		max31856_wr_reg_mux_A(ch,MAX31856_CR0,&cr0,1);
+		max31856_wr_reg_mux_A(ch,MAX31856_CR1,&cr1,1);
+
+		max31856_rd_reg_mux_A(ch,MAX31856_CR0,&datar[0],1);
+		max31856_rd_reg_mux_A(ch,MAX31856_CR1,&datar[1],1);
+		ch->flags |= MAX31856_F_INIT_VALID;
+		if ((cr0 == datar[0]) && (cr1 == datar[1]))
+		{
+			printf("Chip is found CR0: %d CR1: %d\n", cr0, cr1);
+			ch->flags |= MAX31856_F_INIT_VALID;
+			return 0;
+		}
+		HAL_Delay(10);
+	}
+	printf("Chip is not found\n");
+	return 1;
+}
+
+/*****************************************************************************/
+/**
+ * Initialize MAX31856 chip with cr0 c1 configuration
+ * @param ch	Channel number
+ * @param cr0	cr0 configuration
+ * @param cr1	cr1 configuration
+ * @return	0 or 1
+ */
+int max31856_init_mux_B(tMAX31856 *ch,uint8_t cr0,uint8_t cr1)
+{
+	uint8_t datar[2] = {0};
+
+	for (int i=0;i<10;i++)
+	{
+		max31856_wr_reg_mux_B(ch,MAX31856_CR0,&cr0,1);
+		max31856_wr_reg_mux_B(ch,MAX31856_CR1,&cr1,1);
+
+		max31856_rd_reg_mux_B(ch,MAX31856_CR0,&datar[0],1);
+		max31856_rd_reg_mux_B(ch,MAX31856_CR1,&datar[1],1);
+		ch->flags |= MAX31856_F_INIT_VALID;
+		if ((cr0 == datar[0]) && (cr1 == datar[1]))
+		{
+			printf("Chip is found CR0: %d CR1: %d\n", cr0, cr1);
+			ch->flags |= MAX31856_F_INIT_VALID;
+			return 0;
+		}
+		HAL_Delay(10);
+	}
+	printf("Chip is not found\n");
+	return 1;
+}
+
+
+/*****************************************************************************/
+/**
+ * Read sample data from external cold junction STS31 thermal sensor
+ * @param ch	Channel number
+ * @param mux_ch	mux_ch or not
+ */
+void sampleExtCj(int ch, int mux_ch)
+{
+	static uint32_t extcjCounter=0;
+
+	float extTemp;
+	if (extcjCounter == 0)
+	{
+		for (int i=0;i<2;i++)
+		{
+			if (EXTCJ_ReadTemperature(i,&extTemp) == 0)
+			{
+				if (fabs(extTempf[i] - extTemp) > 0.1)
+					extTempf[i] = extTemp;
+				else
+					extTempf[i] = extTempf[i] * 0.99 +  extTemp *0.01;
+
+				int16_t max31CJ = 0;
+
+				/** If mux is enabled, hold 2 cold junction offset value
+				 * If not muxed, cold junction offset value can be defined
+				 * per chip.
+				 */
+				if (gMuxEnabled)
+				{
+					if (gExtCjEnabled)
+					{
+						max31CJ = (extTempf[i]-(extColdJOffset[ch] * 0.0625)) / 0.00390625;
+					}
+					else
+					{
+						if (mux_ch == 0)
+						{
+							max31CJ = (extTempf[i]-extColdJOffset[0]) / 0.00390625;
+						}
+						else
+						{
+							max31CJ = (extTempf[i]-extColdJOffset[1]) / 0.00390625;
+						}
+					}
+				}
+				else
+				{
+					max31CJ = (extTempf[i]-extColdJOffset[ch]) / 0.00390625;
+				}
+
+				//dbg_printf("External CJ : %f\n", extTempf[i]);
+				extCJTemp[i*2] = (max31CJ & 0xFF00)>>8;
+				extCJTemp[i*2+1] = (max31CJ & 0xFF);
+			}
+			else
+			{
+				extCjErrCount++;
+			}
+		}
+	}
+	else if (extcjCounter > 250)
+	{
+		extcjCounter=0;
+	}
+	else
+	{
+		extcjCounter++;
+	}
+
+}
+
+/*****************************************************************************/
+/**
+ * Read Thermocouple sensor value. Function is generated for non-muxed thermocouple
+ * boards.
+ */
+void max31856_nonmuxed_sample()
+{
+	int32_t temp;
+	double tempf;
+	static uint8_t ch;
+	static uint8_t counter;
+
+	if (ch%2 == 0)
+		leds_1_off();
+	else
+		leds_1_on();
+
+	if (counter % 2)
+		counter ++;
+	else
+	{
+		/** Read External Cold Junction value if it is enabled */
+		if (gExtCjEnabled)
+			sampleExtCj(ch, 0);
+
+		/**
+		 * Write external cold junction temperature to MAX31856 because thermocouple
+		 * sensor chip is using CJ value to calculate temperature.
+		 */
+		if (gExtCjEnabled)
+			max31856_wr_reg(&tc[ch],MAX31856_CJTH,&extCJTemp[(ch/4)*2],2);
+
+
+		/** Read value from MAX31856 */
+		HAL_Delay(100);
+		max31856_rd_reg(&tc[ch],MAX31856_READ_START,&tempData[ch][0],MAX31856_READ_SIZE);
+
+		if (tempData[ch][5] == 0)
+		{
+			temp =  (int32_t)tempData[ch][2] << 16;
+			temp |= (int32_t)tempData[ch][3] << 8;
+			temp |= (int32_t)tempData[ch][4];
+
+			if (temp & 0x00800000)
+				temp |= 0xFF000000;
+
+			temp = temp >> 5;
+
+			tempf = (float) temp * 0.0078125f;
+
+			if (fabs(tempf - tempSkip[ch]) > 25)
+			{
+				tempSkip[ch] = tempf;
+			}
+			/** Filter data for rapid changes */
+			if (fabs(filterData[ch]-tempf) > 0.1f)
+				filterData[ch] = tempf;
+			else
+				filterData[ch] = filterData[ch]*0.998f + ((double)tempf)*0.002f;
+
+
+			temp =  (filterData[ch] / 0.0078125f);
+
+			dbg_printf("1Temp Data[%d]: %f\n",ch, tempf);
+			temp = temp << 5;
+			tempData[ch][2] = (temp & 0x00FF0000) >> 16;
+			tempData[ch][3] = (temp & 0x0000FF00) >> 8;
+			tempData[ch][4] = (temp & 0x000000FF);
+		}
+
+		if (tempData[ch][0] == 0x00 && tempData[ch][1] == 0x00 && tempData[ch][2] == 0x00 && tempData[ch][3] == 0x00 && tempData[ch][4] == 0x00)
+		{
+			dbg_printf("Configuration LOST\n");
+			if (!max31856_init(&tc[ch],gConfig.ch_conf[ch].cr0,gConfig.ch_conf[ch].cr1))
+			{
+				if (!gExtCjEnabled)
+				{
+					max31856_wr_reg(&tc[ch],MAX31856_CJTO,(unsigned char* )&gConfig.ch_conf[ch].cj_offset,1);
+				}
+
+				dbg_printf("nonmuxed TC Ch %d OK\n",ch+1);
+				dbg_printf("cr0 : %x\n",gConfig.ch_conf[ch].cr0);
+				dbg_printf("cr1 : %x\n",gConfig.ch_conf[ch].cr1);
+			}
+			else
+			{
+				dbg_printf("nonmuxed TC Ch %d Fail\n",ch+1);
+			}
+
+
+		}
+		else
+		{
+			//dbg_printf("ch : %d OK\n", ch);
+		}
+
+		/** Copy sensor value to global buffer */
+		memcpy(&gMAX31856_buffer[ch*MAX31856_READ_SIZE],&tempData[ch],MAX31856_READ_SIZE);
+
+		if (ch < 7)
+			ch++;
+		else
+			ch=0;
+
+		counter = 0;
+	}
+
+}
+
+#if 0
+/*****************************************************************************/
+/**
+ * Select channel function. In muxed board, MAX31856 is connected to multiplexer which
+ * is connected to 4 thermocouple channel. Function provides to select thermocoupl sensor
+ * channel.
+ * @param ch	Channel number.
+ */
+void tc_sel_ch(uint8_t ch)
+{
+	ch = ch % 4;
+
+	switch(ch)
+	{
+	case 0:
+		gTCMuxGPIOs[TC_MUX_SEL_A_GPIO].port->BSRR = gTCMuxGPIOs[TC_MUX_SEL_A_GPIO].pin;
+		gTCMuxGPIOs[TC_MUX_SEL_B_GPIO].port->BSRR = gTCMuxGPIOs[TC_MUX_SEL_B_GPIO].pin;
+		break;
+	case 1:
+		gTCMuxGPIOs[TC_MUX_SEL_A_GPIO].port->BRR = gTCMuxGPIOs[TC_MUX_SEL_A_GPIO].pin;
+		gTCMuxGPIOs[TC_MUX_SEL_B_GPIO].port->BSRR = gTCMuxGPIOs[TC_MUX_SEL_B_GPIO].pin;
+		break;
+	case 2:
+		gTCMuxGPIOs[TC_MUX_SEL_A_GPIO].port->BSRR = gTCMuxGPIOs[TC_MUX_SEL_A_GPIO].pin;
+		gTCMuxGPIOs[TC_MUX_SEL_B_GPIO].port->BRR = gTCMuxGPIOs[TC_MUX_SEL_B_GPIO].pin;
+		break;
+	case 3:
+		gTCMuxGPIOs[TC_MUX_SEL_A_GPIO].port->BRR = gTCMuxGPIOs[TC_MUX_SEL_A_GPIO].pin;
+		gTCMuxGPIOs[TC_MUX_SEL_B_GPIO].port->BRR = gTCMuxGPIOs[TC_MUX_SEL_B_GPIO].pin;
+		break;
+	}
+}
+#endif
+/*****************************************************************************/
+/**
+ * Select channel function. In muxed board, MAX31856 is connected to multiplexer which
+ * is connected to 4 thermocouple channel. Function provides to select thermocoupl sensor
+ * channel.
+ * @param ch	Channel number.
+ */
+void tc_select_mux_channel_A(uint8_t ch)
+{
+	switch(ch)
+	{
+	case 8:
+		TC_MUX_A0_ADDR_PORT->BRR = TC_MUX_A0_ADDR_PIN;
+		TC_MUX_A1_ADDR_PORT->BRR = TC_MUX_A1_ADDR_PIN;
+		break;
+	case 9:
+		TC_MUX_A0_ADDR_PORT->BSRR = TC_MUX_A0_ADDR_PIN;
+		TC_MUX_A1_ADDR_PORT->BRR = TC_MUX_A1_ADDR_PIN;
+		break;
+	case 10:
+		TC_MUX_A0_ADDR_PORT->BRR = TC_MUX_A0_ADDR_PIN;
+		TC_MUX_A1_ADDR_PORT->BSRR = TC_MUX_A1_ADDR_PIN;
+		break;
+	case 11:
+		TC_MUX_A0_ADDR_PORT->BSRR = TC_MUX_A0_ADDR_PIN;
+		TC_MUX_A1_ADDR_PORT->BSRR = TC_MUX_A1_ADDR_PIN;
+		break;
+	default:
+		break;
+	}
+}
+
+/*****************************************************************************/
+/**
+ * Select channel function. In muxed board, MAX31856 is connected to multiplexer which
+ * is connected to 4 thermocouple channel. Function provides to select thermocoupl sensor
+ * channel.
+ * @param ch	Channel number.
+ */
+void tc_select_mux_channel_B(uint8_t ch)
+{
+	switch(ch)
+	{
+	case 0:
+		TC_MUX_B0_ADDR_PORT->BRR = TC_MUX_B0_ADDR_PIN;
+		TC_MUX_B1_ADDR_PORT->BRR = TC_MUX_B1_ADDR_PIN;
+		TC_MUX_B2_ADDR_PORT->BRR = TC_MUX_B2_ADDR_PIN;
+		break;
+	case 1:
+		TC_MUX_B0_ADDR_PORT->BSRR = TC_MUX_B0_ADDR_PIN;
+		TC_MUX_B1_ADDR_PORT->BRR = TC_MUX_B1_ADDR_PIN;
+		TC_MUX_B2_ADDR_PORT->BRR = TC_MUX_B2_ADDR_PIN;
+		break;
+	case 2:
+		TC_MUX_B0_ADDR_PORT->BRR = TC_MUX_B0_ADDR_PIN;
+		TC_MUX_B1_ADDR_PORT->BSRR = TC_MUX_B1_ADDR_PIN;
+		TC_MUX_B2_ADDR_PORT->BRR = TC_MUX_B2_ADDR_PIN;
+		break;
+	case 3:
+		TC_MUX_B0_ADDR_PORT->BSRR = TC_MUX_B0_ADDR_PIN;
+		TC_MUX_B1_ADDR_PORT->BSRR = TC_MUX_B1_ADDR_PIN;
+		TC_MUX_B2_ADDR_PORT->BRR = TC_MUX_B2_ADDR_PIN;
+		break;
+	case 4:
+		TC_MUX_B0_ADDR_PORT->BRR = TC_MUX_B0_ADDR_PIN;
+		TC_MUX_B1_ADDR_PORT->BRR = TC_MUX_B1_ADDR_PIN;
+		TC_MUX_B2_ADDR_PORT->BSRR = TC_MUX_B2_ADDR_PIN;
+		break;
+	case 5:
+		TC_MUX_B0_ADDR_PORT->BSRR = TC_MUX_B0_ADDR_PIN;
+		TC_MUX_B1_ADDR_PORT->BRR = TC_MUX_B1_ADDR_PIN;
+		TC_MUX_B2_ADDR_PORT->BSRR = TC_MUX_B2_ADDR_PIN;
+		break;
+	case 6:
+		TC_MUX_B0_ADDR_PORT->BRR = TC_MUX_B0_ADDR_PIN;
+		TC_MUX_B1_ADDR_PORT->BSRR = TC_MUX_B1_ADDR_PIN;
+		TC_MUX_B2_ADDR_PORT->BSRR = TC_MUX_B2_ADDR_PIN;
+		break;
+	case 7:
+		TC_MUX_B0_ADDR_PORT->BSRR = TC_MUX_B0_ADDR_PIN;
+		TC_MUX_B1_ADDR_PORT->BSRR = TC_MUX_B1_ADDR_PIN;
+		TC_MUX_B2_ADDR_PORT->BSRR = TC_MUX_B2_ADDR_PIN;
+		break;
+	default:
+		break;
+	}
+}
+
+/*****************************************************************************/
+/**
+ * Check data ready pin to be set
+ * @param timeout
+ * @return
+ */
+int max31856_waitdrdy(uint32_t timeout)
+{
+	uint32_t last = timeout + HAL_GetTick();
+	uint32_t ret = 0;
+	while((TC_MUX_DRDY1_PORT->IDR & TC_MUX_DRDY1_PIN))
+	{
+		if (last > HAL_GetTick())
+		{
+			ret |= 1;
+			break;
+		}
+	}
+	last = timeout + HAL_GetTick();
+	while((TC_MUX_DRDY2_PORT->IDR & TC_MUX_DRDY2_PIN)){
+		if (last > HAL_GetTick())
+		{
+			ret |= 2;
+			break;
+		}
+	}
+	if (last > HAL_GetTick())
+		return ret;
+	else
+		return 0;
+}
+
+/*****************************************************************************/
+/**
+ * Check data ready pin to be set
+ * @param timeout
+ * @return
+ */
+int max31856_waitdrdy_mux(uint32_t timeout)
+{
+	uint32_t last = timeout + HAL_GetTick();
+	uint32_t ret = 0;
+	while((TC_MUX_DRDY1_PORT->IDR & TC_MUX_DRDY1_PIN))
+	{
+		if (last > HAL_GetTick())
+		{
+			dbg_printf("DRDY1 timeout\r\n");
+			ret |= 1;
+			break;
+		}
+	}
+	last = timeout + HAL_GetTick();
+	while((TC_MUX_DRDY2_PORT->IDR & TC_MUX_DRDY2_PIN)){
+		if (last > HAL_GetTick())
+		{
+			dbg_printf("DRDY2 timeout\r\n");
+			ret |= 2;
+			break;
+		}
+	}
+	if (last > HAL_GetTick())
+		return ret;
+	else
+		return 0;
+}
+
+/*****************************************************************************/
+/**
+ * Read Thermocouple sensor value. Function is generated for muxed thermocouple
+ * boards.
+ */
+uint8_t ch=0;
+void max31856_muxed_sample()
+{
+	volatile int32_t temp;
+	volatile double tempf;
+	int i=0;
+
+	for (i=0; i<2; i++)
+	{
+
+		for (ch=0;ch<=3;ch++)
+		{
+			if (ch%2 == 0)
+				leds_1_off();
+			else
+				leds_1_on();
+
+			//TC_MUX_INH_PORT->BRR = TC_MUX_INH_PIN;
+
+			/** Select channel from multiplexer */
+			//tc_sel_ch(ch);
+
+			HAL_Delay(200);
+
+			/** Read external cold junction value */
+			sampleExtCj(ch, i);
+
+			/** Write external cold junction value to MAX31856 chip */
+			max31856_wr_reg(&tc[gMUX_Channels[i]],MAX31856_CJTH,&extCJTemp[i*2],2);
+
+			/** Configure MAX31856 chip for one shot mode and start sampling */
+			uint8_t v = gConfig.ch_conf[gMUX_Channels[i]].cr0 | CR0_1SHOT;
+			max31856_wr_reg(&tc[gMUX_Channels[i]],MAX31856_CR0,&v,1);
+
+			/** Wait for data ready pin to be set */
+			max31856_waitdrdy(200);
+
+			/** Read thermocouple sensor value */
+			max31856_rd_reg(&tc[gMUX_Channels[i]],MAX31856_READ_START,&tempData[ch+(i*4)][0],MAX31856_READ_SIZE);
+
+			temp =  (int32_t)tempData[ch+(i*4)][2] << 16;
+			temp |= (int32_t)tempData[ch+(i*4)][3] << 8;
+			temp |= (int32_t)tempData[ch+(i*4)][4];
+
+			if (temp & 0x00800000)
+				temp |= 0xFF000000;
+
+			temp = temp >> 5;
+
+			tempf = (float) temp * 0.0078125f;
+			//dbg_printf("Temp : %f - ch : %i \r\n", tempf, i);
+
+
+			/** Filter data for rapid changes */
+			if (fabs(filterData[ch+(i*4)]-tempf) > 0.1f)
+				filterData[ch+(i*4)] = tempf;
+			else
+				filterData[ch+(i*4)] = filterData[ch+(i*4)]*0.99f + ((double)tempf)*0.01f;
+
+			temp =  (filterData[ch+(i*4)] / 0.0078125f);
+			temp = temp << 5;
+			tempData[ch+(i*4)][2] = (temp & 0x00FF0000) >> 16;
+			tempData[ch+(i*4)][3] = (temp & 0x0000FF00) >> 8;
+			tempData[ch+(i*4)][4] = (temp & 0x000000FF);
+			memcpy(&gMAX31856_buffer[(ch+(i*4))*MAX31856_READ_SIZE],&tempData[ch+(i*4)][0],MAX31856_READ_SIZE);
+
+			memset(&tempData[ch+(i*4)][0], 0, MAX31856_READ_SIZE);
+
+			//TC_MUX_INH_PORT->BSRR = TC_MUX_INH_PIN;
+		}
+	}
+}
+
+/*****************************************************************************/
+void tc_init(int extcj)
+{
+	dbg_printf("Init TCs\n");
+	if (extcj < 0)
+	{
+		dbg_printf("ExtCj Init Internal Err\n");
+	}
+	else if (extcj == 2)
+	{
+		/** Disable internal CJ sensing */
+		gExtCjEnabled = 0; // this is a external CJ enabled board
+
+		/**
+		 * Check if this board is a mux based one
+		 * probe channel 0 which doens't exists on a muxed board
+		 */
+		if (max31856_init(&tc[0],gConfig.ch_conf[0].cr0,gConfig.ch_conf[0].cr1))
+		{
+			/** Muxed PCB with external CJ Sensors */
+			gMuxEnabled = 1;
+			for (int i=0;i<MAX_TC_CHANNELS;i++)
+			{
+				gConfig.ch_conf[gMUX_Channels[i]].cr0 |= CR0_CJ_DIS;		/** Disable CJ sensing if MUX is enabled */
+				gConfig.ch_conf[gMUX_Channels[i]].cr0 &= (~CR0_CMODE_AUTO);	/** Disable Continuous scan mode if MUX is enabled. */
+				gConfig.ch_conf[gMUX_Channels[i]].cr0 &= (~CR0_OCFAULT0);	/** Disable open circuit detection mode */
+				gConfig.ch_conf[gMUX_Channels[i]].cr0 &= (~CR0_OCFAULT1);	/** Disable open circuit detection mode */
+				gConfig.ch_conf[gMUX_Channels[i]].cr1 &= 0x0F; 				/** Averaging to 1 sample */
+
+				/** Hold external cold junction offset */
+				extColdJOffset[i] = gConfig.ch_conf[gMUX_Channels[i]].cjOffset.cjOff;
+			}
+			dbg_printf("Mux Enabled : %d - %d\n", gMUX_Channels[0], gMUX_Channels[1]);
+		}
+		else
+		{
+			/** Not a muxed one but has external CJ Sensors */
+			for (int i=0;i<8;i++)
+			{
+				//gConfig.ch_conf[gMUX_Channels[i]].cr0 |= CR0_CJ_DIS;
+				extColdJOffset[i] = gConfig.ch_conf[i].cjOffset.cjOff;
+				dbg_printf("extColdJOffset[%d] : %f\n",i,extColdJOffset[i]);
+			}
+		}
+	}
+
+	uint32_t try = 0;
+	if (gMuxEnabled)
+	{
+		for (int i = 0;i<2;i++)
+		{
+			max31856_deselect_mux();
+		}
+		HAL_Delay(10);
+		for (int i = 0;i<2;i++)
+		{
+			try = 0;
+			while(try < 20)
+			{
+				if (!max31856_init(&tc[gMUX_Channels[i]],gConfig.ch_conf[gMUX_Channels[i]].cr0,gConfig.ch_conf[gMUX_Channels[i]].cr1))
+				{
+					dbg_printf("TC Ch %d OK\n",gMUX_Channels[i]);
+					break;
+				}
+				else
+				{
+					dbg_printf("TC Ch %d Fail\n",gMUX_Channels[i]);
+				}
+				HAL_Delay(10);
+				try++;
+			}
+		}
+		/** Configure MUX board specific IO Ports */
+		GPIO_Configure(gTCMuxGPIOs,gGPIOTCMuxPinCount);
+
+		/** Assign function to function pointer to read samples */
+		pfnSample = max31856_muxed_sample;
+	}
+	else
+	{
+		/** Assign function to function pointer to read samples */
+		pfnSample = max31856_nonmuxed_sample;
+		for (int i=0;i<MAX_TC_CHANNELS;i++)
+		{
+			max31856_deselect(&tc[i]);
+			HAL_Delay(10);
+
+			try = 0;
+			while(try < 20)
+			{
+				if (!max31856_init(&tc[i],gConfig.ch_conf[i].cr0,gConfig.ch_conf[i].cr1))
+				{
+					if (!gExtCjEnabled)
+					{
+						max31856_wr_reg(&tc[i],MAX31856_CJTO,(unsigned char* )&gConfig.ch_conf[i].cj_offset,1);
+					}
+
+					dbg_printf("nonmuxed TC Ch %d OK\n",i+1);
+					dbg_printf("cr0 : %x\n",gConfig.ch_conf[i].cr0);
+					dbg_printf("cr1 : %x\n",gConfig.ch_conf[i].cr1);
+					break;
+				}
+				else
+				{
+					dbg_printf("nonmuxed TC Ch %d Fail\n",i+1);
+				}
+				HAL_Delay(10);
+				try++;
+			}
+		}
+	}
+}
+
+/*****************************************************************************/
+void tc_init_mux(int extcj)
+{
+#if 0
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+	max31856_deselect_mux();
+	HAL_Delay(10);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
+	max31856_init_mux(&tc[gMUX_Channels[0]],gConfig.ch_conf[gMUX_Channels[0]].cr0,gConfig.ch_conf[gMUX_Channels[0]].cr1);
+	HAL_Delay(10);
+#endif
+	for (int i=0;i<MAX_TC_CHANNELS;i++)
+	{
+#if 0
+		gConfig.ch_conf[i].cr0 &= ~CR0_CJ_DIS;		/** Disable CJ sensing if MUX is enabled */
+		gConfig.ch_conf[i].cr0 &= (~CR0_CMODE_AUTO);	/** Disable Continuous scan mode if MUX is enabled. */
+		gConfig.ch_conf[i].cr0 &= (~CR0_OCFAULT0);	/** Disable open circuit detection mode */
+		gConfig.ch_conf[i].cr0 &= (~CR0_OCFAULT1);	/** Disable open circuit detection mode */
+		gConfig.ch_conf[i].cr1 &= 0x0F; 				/** Averaging to 1 sample */
+#endif
+		gConfig.ch_conf[i].cr0 &= (~CR0_CMODE_AUTO);	/** Disable Continuous scan mode if MUX is enabled. */
+		gConfig.ch_conf[i].cr0 |= (CR0_OCFAULT0);	/** Disable open circuit detection mode */
+		gConfig.ch_conf[i].cr0 |= (CR0_OCFAULT1);	/** Disable open circuit detection mode */
+		gConfig.ch_conf[i].cr1 &= 0x0F; 				/** Averaging to 1 sample */
+		//gConfig.ch_conf[i].cr0 |= CR0_1SHOT;
+
+		gConfig.ch_conf[gMUX_Channels[i]].cr0 |= CR0_CJ_DIS;
+		//gConfig.ch_conf[i].cr0 &= ~CR0_CJ_DIS;		/** Disable CJ sensing if MUX is enabled */
+		/** Hold external cold junction offset */
+		extColdJOffset[i] = gConfig.ch_conf[i].cjOffset.cjOff;
+	}
+
+	HAL_GPIO_WritePin(TC_MUX_A_EN_PORT, TC_MUX_A_EN_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(TC_MUX_B_EN_PORT, TC_MUX_B_EN_PIN, GPIO_PIN_SET);
+	max31856_deselect_mux_A();
+	max31856_deselect_mux_B();
+	HAL_Delay(10);
+
+	for (int i=0;i<8;i++)
+	{
+		tc_select_mux_channel_B(i);
+		HAL_Delay(200);
+		max31856_init_mux_B(&tc[i],gConfig.ch_conf[i].cr0,gConfig.ch_conf[i].cr1);
+		HAL_Delay(10);
+
+	}
+
+	HAL_Delay(200);
+
+	for (int i=8;i<12;i++)
+	{
+		tc_select_mux_channel_A(i);
+		HAL_Delay(200);
+		max31856_init_mux_A(&tc[i],gConfig.ch_conf[i].cr0,gConfig.ch_conf[i].cr1);
+
+	}
+}
+
+/*****************************************************************************/
+uint8_t channel_A = 8;
+uint8_t channel_B = 0;
+
+void tc_read_mux()
+{
+#if 0
+	for (int idx = 0; idx < 4; idx++)
+	{
+		volatile int32_t temp_A = 0;
+		volatile double tempf_A = 0;
+
+		if (idx%2 == 0)
+			leds_1_off();
+		else
+			leds_1_on();
+
+		HAL_GPIO_WritePin(TC_MUX_A_EN_PORT, TC_MUX_A_EN_PIN, GPIO_PIN_SET);
+		HAL_Delay(10);
+		tc_select_mux_channel_A(channel_A);
+		HAL_Delay(500);
+
+		uint8_t v_A = gConfig.ch_conf[channel_A].cr0 | CR0_1SHOT;
+		dbg_printf("CR0 : %d\r\n", v_A);
+		max31856_wr_reg_mux_A(&tc[channel_A],MAX31856_CR0,&v_A,1);
+
+		max31856_waitdrdy_mux(500);
+
+		max31856_rd_reg_mux_A(&tc[channel_A],MAX31856_READ_START,&tempData[channel_A][0],MAX31856_READ_SIZE);
+
+		temp_A =  (int32_t)tempData[channel_A][2] << 16;
+		temp_A |= (int32_t)tempData[channel_A][3] << 8;
+		temp_A |= (int32_t)tempData[channel_A][4];
+
+		if (temp_A & 0x00800000)
+			temp_A |= 0xFF000000;
+
+		temp_A = temp_A >> 5;
+
+		tempf_A = (float) temp_A * 0.0078125f;
+		dbg_printf("Channel A: %d Temp : %f  Flag : %d\r\n", channel_A, tempf_A, tempData[channel_A][5]);
+
+		if (channel_A + 1 == 4)
+		{
+			channel_A = 0;
+		}
+		else
+		{
+			channel_A++;
+		}
+
+		memcpy(&gMAX31856_buffer[channel_A*MAX31856_READ_SIZE],&tempData[channel_A][0],MAX31856_READ_SIZE);
+
+		memset(&tempData[channel_A][0], 0, MAX31856_READ_SIZE);
+
+		HAL_GPIO_WritePin(TC_MUX_A_EN_PORT, TC_MUX_A_EN_PIN, GPIO_PIN_RESET);
+		HAL_Delay(1000);
+	}
+#endif
+
+#if 0
+	volatile int32_t temp_B;
+	volatile double tempf_B;
+
+	tc_select_mux_channel_B(channel_B);
+	HAL_Delay(50);
+
+	uint8_t v_B = gConfig.ch_conf[channel_B].cr0 | CR0_1SHOT;
+	max31856_wr_reg_mux_B(&tc[channel_B],MAX31856_CR0,&v_B,1);
+
+	HAL_Delay(300);
+	max31856_waitdrdy_mux(300);
+
+	max31856_rd_reg_mux_B(&tc[channel_B],MAX31856_READ_START,&tempData[channel_B][0],MAX31856_READ_SIZE);
+
+	temp_B =  (int32_t)tempData[channel_B][2] << 16;
+	temp_B |= (int32_t)tempData[channel_B][3] << 8;
+	temp_B |= (int32_t)tempData[channel_B][4];
+
+	if (temp_B & 0x00800000)
+		temp_B |= 0xFF000000;
+
+	temp_B = temp_B >> 5;
+
+	tempf_B = (float) temp_B * 0.0078125f;
+
+	int16_t cjraw = (int16_t)(tempData[channel_B][0]) * 256;
+	cjraw += (int16_t)(tempData[channel_B][1]);
+	float cjReal = cjraw * 0.003906;
+
+	dbg_printf("Channel B: %d Temp : %f Flag : %d cjRaw : %f\r\n", channel_B, tempf_B, tempData[channel_B][5], cjReal);
+
+	memcpy(&gMAX31856_buffer[channel_B*MAX31856_READ_SIZE],&tempData[channel_B][0],MAX31856_READ_SIZE);
+
+	memset(&tempData[channel_B][0], 0, MAX31856_READ_SIZE);
+
+	if (channel_B + 1 == 12)
+	{
+		channel_B = 4;
+	}
+	else
+	{
+		channel_B++;
+	}
+	HAL_Delay(10);
+#endif
+
+
+	volatile int32_t temp_A;
+	volatile double tempf_A;
+
+	volatile int32_t temp_B;
+	volatile double tempf_B;
+
+	tc_select_mux_channel_A(channel_A);
+	tc_select_mux_channel_B(channel_B);
+
+	HAL_Delay(50);
+	uint8_t v_A = gConfig.ch_conf[channel_A].cr0 | CR0_1SHOT;
+	max31856_wr_reg_mux_A(&tc[channel_A],MAX31856_CR0,&v_A,1);
+
+	uint8_t type_A = gConfig.ch_conf[channel_A].cr1;
+	max31856_wr_reg_mux_A(&tc[channel_A],MAX31856_CR1,&type_A,1);
+
+	uint8_t v_B = gConfig.ch_conf[channel_B].cr0 | CR0_1SHOT;
+	max31856_wr_reg_mux_B(&tc[channel_B],MAX31856_CR0,&v_B,1);
+
+	uint8_t type_B = gConfig.ch_conf[channel_B].cr1;
+	max31856_wr_reg_mux_B(&tc[channel_B],MAX31856_CR1,&type_B,1);
+
+	HAL_Delay(300);
+	max31856_waitdrdy_mux(300);
+
+	max31856_rd_reg_mux_A(&tc[channel_A],MAX31856_READ_START,&tempData[channel_A][0],MAX31856_READ_SIZE);
+	max31856_rd_reg_mux_B(&tc[channel_B],MAX31856_READ_START,&tempData[channel_B][0],MAX31856_READ_SIZE);
+
+	HAL_Delay(10);
+	temp_A =  (int32_t)tempData[channel_A][2] << 16;
+	temp_A |= (int32_t)tempData[channel_A][3] << 8;
+	temp_A |= (int32_t)tempData[channel_A][4];
+
+	if (temp_A & 0x00800000)
+		temp_A |= 0xFF000000;
+
+	temp_A = temp_A >> 5;
+
+	tempf_A = (float) temp_A * 0.0078125f;
+
+	int16_t cjraw_A = (int16_t)(tempData[channel_A][0]) * 256;
+	cjraw_A += (int16_t)(tempData[channel_A][1]);
+	float cjReal_A = cjraw_A * 0.003906;
+
+	dbg_printf("Channel A: %d Temp : %f  Flag : %d CJ : %f\r\n", channel_A, tempf_A, tempData[channel_A][5], cjReal_A);
+
+	HAL_Delay(10);
+
+	temp_B =  (int32_t)tempData[channel_B][2] << 16;
+	temp_B |= (int32_t)tempData[channel_B][3] << 8;
+	temp_B |= (int32_t)tempData[channel_B][4];
+
+	if (temp_B & 0x00800000)
+		temp_B |= 0xFF000000;
+
+	temp_B = temp_B >> 5;
+
+	tempf_B = (float) temp_B * 0.0078125f;
+
+	int16_t cjraw_B = (int16_t)(tempData[channel_B][0]) * 256;
+	cjraw_B += (int16_t)(tempData[channel_B][1]);
+	float cjReal_B = cjraw_B * 0.003906;
+
+	dbg_printf("Channel B: %d Temp : %f  Flag : %d CJ : %f\r\n", channel_B, tempf_B, tempData[channel_B][5], cjReal_B);
+
+	memcpy(&gMAX31856_buffer[channel_A*MAX31856_READ_SIZE],&tempData[channel_A][0],MAX31856_READ_SIZE);
+
+	memset(&tempData[channel_A][0], 0, MAX31856_READ_SIZE);
+
+	memcpy(&gMAX31856_buffer[channel_B*MAX31856_READ_SIZE],&tempData[channel_B][0],MAX31856_READ_SIZE);
+
+	memset(&tempData[channel_B][0], 0, MAX31856_READ_SIZE);
+
+	if (channel_A + 1 == 12)
+	{
+		channel_A = 8;
+	}
+	else
+	{
+		channel_A++;
+	}
+
+	if (channel_B + 1 == 8)
+	{
+		channel_B = 0;
+	}
+	else
+	{
+		channel_B++;
+	}
+	HAL_Delay(10);
+
+}
+
+#if 0
+/*****************************************************************************/
+void tc_init_mux_2(int extcj)
+{
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+	max31856_deselect_mux_2();
+	HAL_Delay(10);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+	max31856_init_mux_2(&tc[gMUX_Channels[0]],gConfig.ch_conf[gMUX_Channels[0]].cr0,gConfig.ch_conf[gMUX_Channels[0]].cr1);
+	HAL_Delay(10);
+}
+
+/*****************************************************************************/
+void tc_read_mux()
+{
+	volatile int32_t temp;
+	volatile double tempf;
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET);
+	HAL_Delay(200);
+	uint8_t v = gConfig.ch_conf[gMUX_Channels[0]].cr0 | CR0_1SHOT;
+	max31856_wr_reg_mux(&tc[gMUX_Channels[0]],MAX31856_CR0,&v,1);
+
+	max31856_waitdrdy_mux(200);
+
+	max31856_rd_reg_mux(&tc[gMUX_Channels[0]],MAX31856_READ_START,&tempData[0][0],MAX31856_READ_SIZE);
+
+	temp =  (int32_t)tempData[0][2] << 16;
+	temp |= (int32_t)tempData[0][3] << 8;
+	temp |= (int32_t)tempData[0][4];
+
+	if (temp & 0x00800000)
+		temp |= 0xFF000000;
+
+	temp = temp >> 5;
+
+	tempf = (float) temp * 0.0078125f;
+	dbg_printf("Temp : %f  \r\n", tempf);
+
+	HAL_Delay(10);
+}
+
+/*****************************************************************************/
+void tc_read_mux_2()
+{
+	volatile int32_t temp;
+	volatile double tempf;
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+	HAL_Delay(200);
+	uint8_t v = gConfig.ch_conf[gMUX_Channels[0]].cr0 | CR0_1SHOT;
+	max31856_wr_reg_mux_2(&tc[gMUX_Channels[0]],MAX31856_CR0,&v,1);
+
+	max31856_waitdrdy_mux(200);
+
+	max31856_rd_reg_mux_2(&tc[gMUX_Channels[0]],MAX31856_READ_START,&tempData[0][0],MAX31856_READ_SIZE);
+
+	temp =  (int32_t)tempData[0][2] << 16;
+	temp |= (int32_t)tempData[0][3] << 8;
+	temp |= (int32_t)tempData[0][4];
+
+	if (temp & 0x00800000)
+		temp |= 0xFF000000;
+
+	temp = temp >> 5;
+
+	tempf = (float) temp * 0.0078125f;
+	dbg_printf("Temp : %f  \r\n", tempf);
+
+	HAL_Delay(10);
+}
+#endif
+
+/*****************************************************************************/
+uint8_t idx = 0;
+void max31856_process()
+{
+	if (gProcessSample)
+	{
+		if (idx%2 == 0)
+			leds_1_off();
+		else
+			leds_1_on();
+		tc_read_mux();
+		//pfnSample();
+		gProcessSample = 0;
+		idx++;
+	}
+}
+
+/**@}*/
+/******************************************************************************/
+/*   Copyright (C) Rota Teknik 2019,  All Rights Reserved. Confidential.      */
+/******************************************************************************/

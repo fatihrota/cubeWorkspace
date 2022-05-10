@@ -43,6 +43,14 @@
 typedef struct
 {
 	uint8_t value;	
+	union {
+		float voltOff;
+		unsigned char voltBytes[4];
+	} voltCal;
+	union {
+		float curOff;
+		unsigned char curBytes[4];
+	} curCal;
 }tConfig_pa;
 
 /**
@@ -53,7 +61,10 @@ typedef struct
 	uint8_t cr0;		/**< Register cr0 settings */
 	uint8_t cr1;		/**< Register cr1 settings */
 	int8_t cj_offset;	/**< Cold junction offset settings */
-	uint8_t align;		/**< Alignment */
+	union {
+		float cjOff;
+		uint8_t cjOffBytes[4];
+	} cjOffset;
 }tChConfig;
 
 /**

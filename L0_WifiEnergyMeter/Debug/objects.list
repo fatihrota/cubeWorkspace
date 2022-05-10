@@ -1,4 +1,5 @@
 "Core/Src/MAX31856.o"
+"Core/Src/bl_interface.o"
 "Core/Src/bus_comm.o"
 "Core/Src/conf.o"
 "Core/Src/conf_board.o"

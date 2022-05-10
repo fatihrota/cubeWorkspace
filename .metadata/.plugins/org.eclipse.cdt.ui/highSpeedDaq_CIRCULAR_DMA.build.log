@@ -1,0 +1,10 @@
+17:15:28 **** Incremental Build of configuration Debug for project highSpeedDaq_CIRCULAR_DMA ****
+make -j15 all 
+arm-none-eabi-size   highSpeedDaq_CIRCULAR_DMA.elf 
+   text	   data	    bss	    dec	    hex	filename
+  59724	    492	  25892	  86108	  1505c	highSpeedDaq_CIRCULAR_DMA.elf
+Finished building: default.size.stdout
+ 
+
+17:15:28 Build Finished. 0 errors, 0 warnings. (took 428ms)
+

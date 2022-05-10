@@ -58,8 +58,10 @@ void conf_writeconf (tBoardConfig * c)
 		FLASH_If_Write((uint32_t)&__CONFIG_START,(uint32_t *)c,sizeof(tBoardConfig)/sizeof(uint32_t));
 		if (memcmp(conf,c,sizeof(tBoardConfig))==0)
 		{
+			dbg_printf("Write comp OK!!\r\n");
 			break;
 		}
+		dbg_printf("Write comp not ok\r\n");
 	}
 
 }
@@ -71,8 +73,10 @@ void conf_checkandload()
 
 	if ((memcmp(&conf->magic,&DefaultConfig.magic,4)!= 0) || (conf->vers != DefaultConfig.vers))
 	{
+		dbg_printf("Load Default Conf\r\n");
 		conf_writeconf((tBoardConfig *)&DefaultConfig);
 	}
+	dbg_printf("Load Check Conf\r\n");
 	memcpy(&gBoardConfig,conf,sizeof(tBoardConfig));
 }
 

@@ -7,4 +7,4 @@ main.c:290:13:MX_USART2_UART_Init	8	static
 main.c:325:13:MX_USART4_UART_Init	8	static
 main.c:358:13:MX_DMA_Init	16	static
 main.c:379:13:MX_GPIO_Init	48	static
-main.c:420:6:Error_Handler	8	static
+main.c:430:6:Error_Handler	8	static

@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="MX_USART5_UART_Init"/>
+		<item key="selection" value="max31856_write_conf"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="MX_USART5_UART_Init"/>
-			<item value="dmaCnt"/>
-			<item value="SPI_ByteCount"/>
-			<item value="EXTI0_Flag"/>
-			<item value="dmaCanCopy"/>
-			<item value="RxBuf_Idn"/>
-			<item value="SAMPLE_DMA_SIZE"/>
-			<item value="SAMPLE_SIZE"/>
-			<item value="SAMPLE_TOTAL_SIZE"/>
-			<item value="RxBufDMA_Idn"/>
-			<item value="starttime"/>
-			<item value="finishTime"/>
-			<item value="DISABLE"/>
-			<item value="8"/>
-			<item value="9"/>
+			<item value="max31856_write_conf"/>
+			<item value="extColdJOffset"/>
+			<item value="dbg_printf(&quot;Write config ch : %d CR0: %d CR1: %d\r\n&quot;, ch, data[0], data[1]);"/>
+			<item value="CH_CONF_LENGTH"/>
+			<item value="gExtCjEnabled"/>
+			<item value="gMuxEnabled"/>
+			<item value="max31856_waitdrdy_mux"/>
+			<item value="max31856_process"/>
+			<item value="tc_sel_ch"/>
+			<item value="tc_select_mux_channel_A"/>
+			<item value="gMAX31856_buffer"/>
+			<item value="flag"/>
+			<item value="waitD"/>
+			<item value="wait"/>
+			<item value="read"/>
 		</list>
 		<list key="replacehistory">
 		</list>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
-		<item key="DIALOG_X_ORIGIN" value="1146"/>
-		<item key="DIALOG_Y_ORIGIN" value="460"/>
+		<item key="DIALOG_X_ORIGIN" value="1938"/>
+		<item key="DIALOG_Y_ORIGIN" value="212"/>
 		<item key="DIALOG_WIDTH" value="284"/>
 		<item key="DIALOG_HEIGHT" value="379"/>
 		<item key="DIALOG_FONT_NAME" value="1|Segoe UI|9.0|0|WINDOWS|1|-12|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI"/>

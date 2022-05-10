@@ -39,11 +39,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  17 .debug_line   000083c6  00000000  00000000  0004d965  2**0
                   CONTENTS, READONLY, DEBUGGING
- 18 .debug_str    000b4d96  00000000  00000000  00055d2b  2**0
+ 18 .debug_str    000b4d9b  00000000  00000000  00055d2b  2**0
                   CONTENTS, READONLY, DEBUGGING
- 19 .comment      0000007b  00000000  00000000  0010aac1  2**0
+ 19 .comment      0000007b  00000000  00000000  0010aac6  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00003790  00000000  00000000  0010ab3c  2**2
+ 20 .debug_frame  00003790  00000000  00000000  0010ab44  2**2
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -1346,24 +1346,24 @@ PUTCHAR_PROTOTYPE
  8001004:	2000060c 	.word	0x2000060c
 
 08001008 <HAL_GPIO_EXTI_Callback>:
-static void MX_USART2_UART_Init(void);
-static void MX_SPI3_Init(void);
-static void MX_SPI1_Init(void);
-/* USER CODE BEGIN PFP */
+/* USER CODE BEGIN 0 */
 
-/* USER CODE END PFP */
+uint8_t EXTI0_Flag = 0;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
  8001008:	b480      	push	{r7}
  800100a:	b083      	sub	sp, #12
  800100c:	af00      	add	r7, sp, #0
  800100e:	4603      	mov	r3, r0
  8001010:	80fb      	strh	r3, [r7, #6]
 
-/* Private user code ---------------------------------------------------------*/
+	if (GPIO_Pin == GPIO_PIN_4)
  8001012:	88fb      	ldrh	r3, [r7, #6]
  8001014:	2b10      	cmp	r3, #16
  8001016:	d10d      	bne.n	8001034 <HAL_GPIO_EXTI_Callback+0x2c>
-/* USER CODE BEGIN 0 */
-
+	{
+		__HAL_SPI_ENABLE(&hspi1);
  8001018:	4b09      	ldr	r3, [pc, #36]	; (8001040 <HAL_GPIO_EXTI_Callback+0x38>)
  800101a:	681b      	ldr	r3, [r3, #0]
  800101c:	681a      	ldr	r2, [r3, #0]
@@ -1371,20 +1371,20 @@ static void MX_SPI1_Init(void);
  8001020:	681b      	ldr	r3, [r3, #0]
  8001022:	f042 0240 	orr.w	r2, r2, #64	; 0x40
  8001026:	601a      	str	r2, [r3, #0]
-uint8_t EXTI0_Flag = 0;
+		 __HAL_GPIO_EXTI_CLEAR_IT(EXTI4_IRQn);
  8001028:	4b06      	ldr	r3, [pc, #24]	; (8001044 <HAL_GPIO_EXTI_Callback+0x3c>)
  800102a:	220a      	movs	r2, #10
  800102c:	615a      	str	r2, [r3, #20]
-
+		EXTI0_Flag = 1;
  800102e:	4b06      	ldr	r3, [pc, #24]	; (8001048 <HAL_GPIO_EXTI_Callback+0x40>)
  8001030:	2201      	movs	r2, #1
  8001032:	701a      	strb	r2, [r3, #0]
-{
+		if (Rx_temp > 0x00)
+			dbg_printf("%x\r\n", Rx_temp);*/
+	}
 
-	if (GPIO_Pin == GPIO_PIN_4)
-	{
-		__HAL_SPI_ENABLE(&hspi1);
-		//__HAL_GPIO_EXTI_CLEAR_IT(EXTI4_IRQn);
+
+}
  8001034:	bf00      	nop
  8001036:	370c      	adds	r7, #12
  8001038:	46bd      	mov	sp, r7
@@ -1396,63 +1396,63 @@ uint8_t EXTI0_Flag = 0;
  8001048:	200001fc 	.word	0x200001fc
 
 0800104c <main>:
-
-}
-
-static void SPI_DMAReceiveCplt(DMA_HandleTypeDef *hdma)
-{
-	dbg_printf("DMA Received\n");
- 800104c:	b580      	push	{r7, lr}
- 800104e:	f5ad 6d86 	sub.w	sp, sp, #1072	; 0x430
- 8001052:	af02      	add	r7, sp, #8
-
-static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
-{
-	dbg_printf("DMA Received HALF\n");
-	RxBuf_Idn+= 64;
-}
- 8001054:	f000 fca0 	bl	8001998 <HAL_Init>
-/* USER CODE END 0 */
-
 /**
   * @brief  The application entry point.
   * @retval int
   */
- 8001058:	f000 f8dc 	bl	8001214 <SystemClock_Config>
+int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
+ 800104c:	b580      	push	{r7, lr}
+ 800104e:	f5ad 6d86 	sub.w	sp, sp, #1072	; 0x430
+ 8001052:	af02      	add	r7, sp, #8
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
- 800105c:	f000 f9e2 	bl	8001424 <MX_GPIO_Init>
 
- 8001060:	f000 f9c2 	bl	80013e8 <MX_DMA_Init>
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
- 8001064:	f000 f996 	bl	8001394 <MX_USART2_UART_Init>
   HAL_Init();
- 8001068:	f000 f95e 	bl	8001328 <MX_SPI3_Init>
-
- 800106c:	f000 f926 	bl	80012bc <MX_SPI1_Init>
+ 8001054:	f000 fca0 	bl	8001998 <HAL_Init>
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
- 8001070:	f7ff ff68 	bl	8000f44 <debug_init>
 
   /* Configure the system clock */
+  SystemClock_Config();
+ 8001058:	f000 f8dc 	bl	8001214 <SystemClock_Config>
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+ 800105c:	f000 f9e2 	bl	8001424 <MX_GPIO_Init>
+  MX_DMA_Init();
+ 8001060:	f000 f9c2 	bl	80013e8 <MX_DMA_Init>
+  MX_USART2_UART_Init();
+ 8001064:	f000 f996 	bl	8001394 <MX_USART2_UART_Init>
+  MX_SPI3_Init();
+ 8001068:	f000 f95e 	bl	8001328 <MX_SPI3_Init>
+  MX_SPI1_Init();
+ 800106c:	f000 f926 	bl	80012bc <MX_SPI1_Init>
+  /* USER CODE BEGIN 2 */
+
+  debug_init();
+ 8001070:	f7ff ff68 	bl	8000f44 <debug_init>
+
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
  8001074:	2200      	movs	r2, #0
  8001076:	2101      	movs	r1, #1
  8001078:	4860      	ldr	r0, [pc, #384]	; (80011fc <main+0x1b0>)
  800107a:	f001 fbc1 	bl	8002800 <HAL_GPIO_WritePin>
-  SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
+  uint8_t buf[2];
+  uint8_t read[2];
+  buf[0] = 0x80 | (0x0A & 0x7F);
  800107e:	238a      	movs	r3, #138	; 0x8a
  8001080:	f887 3408 	strb.w	r3, [r7, #1032]	; 0x408
-
+  buf[1] = 0x00;
  8001084:	2300      	movs	r3, #0
  8001086:	f887 3409 	strb.w	r3, [r7, #1033]	; 0x409
-  /* USER CODE END SysInit */
+  HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
  800108a:	f207 4204 	addw	r2, r7, #1028	; 0x404
  800108e:	f507 6181 	add.w	r1, r7, #1032	; 0x408
  8001092:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
@@ -1460,24 +1460,24 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  8001098:	2302      	movs	r3, #2
  800109a:	4859      	ldr	r0, [pc, #356]	; (8001200 <main+0x1b4>)
  800109c:	f002 f970 	bl	8003380 <HAL_SPI_TransmitReceive>
-
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
  80010a0:	2201      	movs	r2, #1
  80010a2:	2101      	movs	r1, #1
  80010a4:	4855      	ldr	r0, [pc, #340]	; (80011fc <main+0x1b0>)
  80010a6:	f001 fbab 	bl	8002800 <HAL_GPIO_WritePin>
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
+
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
  80010aa:	2200      	movs	r2, #0
  80010ac:	2101      	movs	r1, #1
  80010ae:	4853      	ldr	r0, [pc, #332]	; (80011fc <main+0x1b0>)
  80010b0:	f001 fba6 	bl	8002800 <HAL_GPIO_WritePin>
-  MX_DMA_Init();
+  buf[0] = 0x80 | (0x0A & 0x7F);
  80010b4:	238a      	movs	r3, #138	; 0x8a
  80010b6:	f887 3408 	strb.w	r3, [r7, #1032]	; 0x408
-  MX_USART2_UART_Init();
+    buf[1] = 0x00;
  80010ba:	2300      	movs	r3, #0
  80010bc:	f887 3409 	strb.w	r3, [r7, #1033]	; 0x409
-  MX_SPI3_Init();
+  HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
  80010c0:	f207 4204 	addw	r2, r7, #1028	; 0x404
  80010c4:	f507 6181 	add.w	r1, r7, #1032	; 0x408
  80010c8:	f44f 737a 	mov.w	r3, #1000	; 0x3e8
@@ -1485,82 +1485,82 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  80010ce:	2302      	movs	r3, #2
  80010d0:	484b      	ldr	r0, [pc, #300]	; (8001200 <main+0x1b4>)
  80010d2:	f002 f955 	bl	8003380 <HAL_SPI_TransmitReceive>
-  MX_SPI1_Init();
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
  80010d6:	2201      	movs	r2, #1
  80010d8:	2101      	movs	r1, #1
  80010da:	4848      	ldr	r0, [pc, #288]	; (80011fc <main+0x1b0>)
  80010dc:	f001 fb90 	bl	8002800 <HAL_GPIO_WritePin>
-  /* USER CODE BEGIN 2 */
 
-  debug_init();
-  DWT_Init();
+
+
+  dbg_printf("read : %x - %x \n", read[0], read[1]);
  80010e0:	f897 3404 	ldrb.w	r3, [r7, #1028]	; 0x404
  80010e4:	4619      	mov	r1, r3
  80010e6:	f897 3405 	ldrb.w	r3, [r7, #1029]	; 0x405
  80010ea:	461a      	mov	r2, r3
  80010ec:	4845      	ldr	r0, [pc, #276]	; (8001204 <main+0x1b8>)
  80010ee:	f003 fe15 	bl	8004d1c <iprintf>
-  SystemCoreClockUpdate();
+  HAL_Delay(1000);
  80010f2:	f44f 707a 	mov.w	r0, #1000	; 0x3e8
  80010f6:	f000 fcb1 	bl	8001a5c <HAL_Delay>
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-    buf[0] = 0x80 | (0x04 & 0x7F);
-    buf[1] = 0x00;
-    HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+  dbg_printf("read2 : %x - %x \n", read[0], read[1]);
 
+  HAL_Delay(1000);
+#endif
+  uint8_t Rx_temp;
+  uint8_t SPI_RxBuffer[1024] = {0};
  80010fa:	1d3b      	adds	r3, r7, #4
  80010fc:	4618      	mov	r0, r3
  80010fe:	f44f 6380 	mov.w	r3, #1024	; 0x400
  8001102:	461a      	mov	r2, r3
  8001104:	2100      	movs	r1, #0
  8001106:	f002 ffd2 	bl	80040ae <memset>
-    //dbg_printf("read PWR : %x - %x \n", read[0], read[1]);
+  uint32_t RxBuf_Idn = 0;
  800110a:	2300      	movs	r3, #0
  800110c:	f8c7 3424 	str.w	r3, [r7, #1060]	; 0x424
-    HAL_Delay(100);
+  uint32_t SPI_ByteCount = 0;
  8001110:	2300      	movs	r3, #0
  8001112:	f8c7 3420 	str.w	r3, [r7, #1056]	; 0x420
-
+  uint8_t SPI_CNVCount = 32;
  8001116:	2320      	movs	r3, #32
  8001118:	f887 341b 	strb.w	r3, [r7, #1051]	; 0x41b
-
+  uint8_t SPI_CNVByteNum = 0;
  800111c:	2300      	movs	r3, #0
  800111e:	f887 341a 	strb.w	r3, [r7, #1050]	; 0x41a
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-    buf[0] = (0x04 & 0x7F);
-    buf[1] = 0x33;
-    HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  uint32_t starttime = HAL_GetTick();
  8001122:	f000 fc91 	bl	8001a48 <HAL_GetTick>
  8001126:	f8c7 0414 	str.w	r0, [r7, #1044]	; 0x414
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_1, GPIO_PIN_SET);*/
 
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-        buf[0] = 0x80 | (0x04 & 0x7F);
-        buf[1] = 0x00;
-        HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
+    /* USER CODE BEGIN 3 */
+	 /* dbg_printf("High Speed DAC...\n");
+	  HAL_Delay(1000);*/
+
+	  if (EXTI0_Flag)
  800112a:	4b37      	ldr	r3, [pc, #220]	; (8001208 <main+0x1bc>)
  800112c:	781b      	ldrb	r3, [r3, #0]
  800112e:	2b00      	cmp	r3, #0
  8001130:	d03c      	beq.n	80011ac <main+0x160>
-        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
-
+	  {
+		  EXTI0_Flag = 0;
  8001132:	4b35      	ldr	r3, [pc, #212]	; (8001208 <main+0x1bc>)
  8001134:	2200      	movs	r2, #0
  8001136:	701a      	strb	r2, [r3, #0]
-        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-        buf[0] = 0x80 | (0x04 & 0x7F);
+
+		  Rx_temp = *(__IO uint8_t *)&hspi1.Instance->DR;
  8001138:	4b34      	ldr	r3, [pc, #208]	; (800120c <main+0x1c0>)
  800113a:	681b      	ldr	r3, [r3, #0]
  800113c:	330c      	adds	r3, #12
  800113e:	781b      	ldrb	r3, [r3, #0]
  8001140:	f887 3413 	strb.w	r3, [r7, #1043]	; 0x413
-        buf[1] = 0x00;
-        HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
-        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
-
-        //dbg_printf("read PWR 2 : %x - %x \n", read[0], read[1]);
+		  /*if (Rx_temp > 0x00)
+		  {
+			  dbg_printf("%x \r\n", Rx_temp);
+		  }*/
+		   __HAL_SPI_ENABLE(&hspi1);
  8001144:	4b31      	ldr	r3, [pc, #196]	; (800120c <main+0x1c0>)
  8001146:	681b      	ldr	r3, [r3, #0]
  8001148:	681a      	ldr	r2, [r3, #0]
@@ -1568,22 +1568,22 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  800114c:	681b      	ldr	r3, [r3, #0]
  800114e:	f042 0240 	orr.w	r2, r2, #64	; 0x40
  8001152:	601a      	str	r2, [r3, #0]
-        HAL_Delay(100);
 
+		   while (SPI_ByteCount < 32)
  8001154:	e01b      	b.n	800118e <main+0x142>
+		   {
 
-
-
-
+			   // Check the RXNE flag
+				if (__HAL_SPI_GET_FLAG(&hspi1, SPI_FLAG_RXNE))//
  8001156:	4b2d      	ldr	r3, [pc, #180]	; (800120c <main+0x1c0>)
  8001158:	681b      	ldr	r3, [r3, #0]
  800115a:	689b      	ldr	r3, [r3, #8]
  800115c:	f003 0301 	and.w	r3, r3, #1
  8001160:	2b01      	cmp	r3, #1
  8001162:	d114      	bne.n	800118e <main+0x142>
-
-
-
+				{
+					// transfer the received data from DR register to memory
+					SPI_RxBuffer[RxBuf_Idn] = *(__IO uint8_t *)&hspi1.Instance->DR;
  8001164:	4b29      	ldr	r3, [pc, #164]	; (800120c <main+0x1c0>)
  8001166:	681b      	ldr	r3, [r3, #0]
  8001168:	330c      	adds	r3, #12
@@ -1594,26 +1594,26 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  8001174:	4413      	add	r3, r2
  8001176:	460a      	mov	r2, r1
  8001178:	701a      	strb	r2, [r3, #0]
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-        buf[0] = 0x80 | (0x07 & 0x7F);
-        buf[1] = 0x00;
-        HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
-        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+					/*if (SPI_RxBuffer[RxBuf_Idn] > 0x00)
+					{
+						//dbg_printf("%x \r\n", SPI_RxBuffer[RxBuf_Idn]);
+					}*/
 
+					RxBuf_Idn++;
  800117a:	f8d7 3424 	ldr.w	r3, [r7, #1060]	; 0x424
  800117e:	3301      	adds	r3, #1
  8001180:	f8c7 3424 	str.w	r3, [r7, #1060]	; 0x424
-        HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
+					SPI_ByteCount++;
  8001184:	f8d7 3420 	ldr.w	r3, [r7, #1056]	; 0x420
  8001188:	3301      	adds	r3, #1
  800118a:	f8c7 3420 	str.w	r3, [r7, #1056]	; 0x420
-
+		   while (SPI_ByteCount < 32)
  800118e:	f8d7 3420 	ldr.w	r3, [r7, #1056]	; 0x420
  8001192:	2b1f      	cmp	r3, #31
  8001194:	d9df      	bls.n	8001156 <main+0x10a>
-        buf[0] = 0x80 | (0x07 & 0x7F);
-        buf[1] = 0x00;
-        HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
+				}
+		   }
+		    __HAL_SPI_DISABLE(&hspi1);
  8001196:	4b1d      	ldr	r3, [pc, #116]	; (800120c <main+0x1c0>)
  8001198:	681b      	ldr	r3, [r3, #0]
  800119a:	681a      	ldr	r2, [r3, #0]
@@ -1621,24 +1621,24 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  800119e:	681b      	ldr	r3, [r3, #0]
  80011a0:	f022 0240 	bic.w	r2, r2, #64	; 0x40
  80011a4:	601a      	str	r2, [r3, #0]
+		    //RxBuf_Idn = SPI_CNVCount * SPI_CNVByteNum;
 
-        //dbg_printf("read Cfg : %x - %x \n", read[0], read[1]);
-        HAL_Delay(100);
-
-
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
+		   //dbg_printf("%d \r\n", RxBuf_Idn);
+		   //RxBuf_Idn = 0;
+		   //HAL_Delay(1000);
+		   SPI_ByteCount = 0;
  80011a6:	2300      	movs	r3, #0
  80011a8:	f8c7 3420 	str.w	r3, [r7, #1056]	; 0x420
-    buf[0] = (0x07 & 0x7F);
-    buf[1] = 0x00;
+	  }
+	  if (RxBuf_Idn >= 1024)
  80011ac:	f8d7 3424 	ldr.w	r3, [r7, #1060]	; 0x424
  80011b0:	f5b3 6f80 	cmp.w	r3, #1024	; 0x400
  80011b4:	d3b9      	bcc.n	800112a <main+0xde>
-    HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+	  {
+		  uint32_t finishTime = HAL_GetTick();
  80011b6:	f000 fc47 	bl	8001a48 <HAL_GetTick>
  80011ba:	f8c7 040c 	str.w	r0, [r7, #1036]	; 0x40c
-
+		  dbg_printf("%d - %d = %d\r\n", finishTime, starttime, finishTime - starttime);
  80011be:	f8d7 240c 	ldr.w	r2, [r7, #1036]	; 0x40c
  80011c2:	f8d7 3414 	ldr.w	r3, [r7, #1044]	; 0x414
  80011c6:	1ad3      	subs	r3, r2, r3
@@ -1646,10 +1646,10 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  80011cc:	f8d7 140c 	ldr.w	r1, [r7, #1036]	; 0x40c
  80011d0:	480f      	ldr	r0, [pc, #60]	; (8001210 <main+0x1c4>)
  80011d2:	f003 fda3 	bl	8004d1c <iprintf>
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
+		  RxBuf_Idn = 0;
  80011d6:	2300      	movs	r3, #0
  80011d8:	f8c7 3424 	str.w	r3, [r7, #1060]	; 0x424
-    buf[0] = 0x80 | (0x07 & 0x7F);
+		  for (int i=0; i<1024; i++)
  80011dc:	2300      	movs	r3, #0
  80011de:	f8c7 341c 	str.w	r3, [r7, #1052]	; 0x41c
  80011e2:	e004      	b.n	80011ee <main+0x1a2>
@@ -1659,7 +1659,7 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  80011ee:	f8d7 341c 	ldr.w	r3, [r7, #1052]	; 0x41c
  80011f2:	f5b3 6f80 	cmp.w	r3, #1024	; 0x400
  80011f6:	dbf5      	blt.n	80011e4 <main+0x198>
-        HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
+	  if (EXTI0_Flag)
  80011f8:	e797      	b.n	800112a <main+0xde>
  80011fa:	bf00      	nop
  80011fc:	40011400 	.word	0x40011400
@@ -1670,22 +1670,22 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  8001210:	0800848c 	.word	0x0800848c
 
 08001214 <SystemClock_Config>:
-
-
-
-
-
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
  8001214:	b580      	push	{r7, lr}
  8001216:	b094      	sub	sp, #80	; 0x50
  8001218:	af00      	add	r7, sp, #0
-    buf[0] = 0x80 | (0x01 & 0x7F);
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
  800121a:	f107 0318 	add.w	r3, r7, #24
  800121e:	2238      	movs	r2, #56	; 0x38
  8001220:	2100      	movs	r1, #0
  8001222:	4618      	mov	r0, r3
  8001224:	f002 ff43 	bl	80040ae <memset>
-    buf[1] = 0x00;
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
  8001228:	1d3b      	adds	r3, r7, #4
  800122a:	2200      	movs	r2, #0
  800122c:	601a      	str	r2, [r3, #0]
@@ -1693,74 +1693,74 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  8001230:	609a      	str	r2, [r3, #8]
  8001232:	60da      	str	r2, [r3, #12]
  8001234:	611a      	str	r2, [r3, #16]
-    HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
 
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-    buf[0] = 0x80 | (0x01 & 0x7F);
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
  8001236:	2301      	movs	r3, #1
  8001238:	61bb      	str	r3, [r7, #24]
-    buf[1] = 0x00;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
  800123a:	f44f 3380 	mov.w	r3, #65536	; 0x10000
  800123e:	623b      	str	r3, [r7, #32]
-    HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
+  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV5;
  8001240:	2304      	movs	r3, #4
  8001242:	627b      	str	r3, [r7, #36]	; 0x24
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
  8001244:	2301      	movs	r3, #1
  8001246:	62fb      	str	r3, [r7, #44]	; 0x2c
-
+  RCC_OscInitStruct.Prediv1Source = RCC_PREDIV1_SOURCE_PLL2;
  8001248:	f44f 3380 	mov.w	r3, #65536	; 0x10000
  800124c:	61fb      	str	r3, [r7, #28]
-    //dbg_printf("read Mode A : %x - %x \n", read[0], read[1]);
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
  800124e:	2302      	movs	r3, #2
  8001250:	63bb      	str	r3, [r7, #56]	; 0x38
-    HAL_Delay(100);
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
  8001252:	f44f 3380 	mov.w	r3, #65536	; 0x10000
  8001256:	63fb      	str	r3, [r7, #60]	; 0x3c
-
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
  8001258:	f44f 13e0 	mov.w	r3, #1835008	; 0x1c0000
  800125c:	643b      	str	r3, [r7, #64]	; 0x40
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
+  RCC_OscInitStruct.PLL2.PLL2State = RCC_PLL2_ON;
  800125e:	2302      	movs	r3, #2
  8001260:	647b      	str	r3, [r7, #68]	; 0x44
-    buf[0] = (0x01 & 0x7F);
+  RCC_OscInitStruct.PLL2.PLL2MUL = RCC_PLL2_MUL8;
  8001262:	f44f 63c0 	mov.w	r3, #1536	; 0x600
  8001266:	64bb      	str	r3, [r7, #72]	; 0x48
-    buf[1] = 0x0C;
+  RCC_OscInitStruct.PLL2.HSEPrediv2Value = RCC_HSE_PREDIV2_DIV5;
  8001268:	2340      	movs	r3, #64	; 0x40
  800126a:	64fb      	str	r3, [r7, #76]	; 0x4c
-    HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
  800126c:	f107 0318 	add.w	r3, r7, #24
  8001270:	4618      	mov	r0, r3
  8001272:	f001 faf5 	bl	8002860 <HAL_RCC_OscConfig>
  8001276:	4603      	mov	r3, r0
  8001278:	2b00      	cmp	r3, #0
  800127a:	d001      	beq.n	8001280 <SystemClock_Config+0x6c>
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
-
+  {
+    Error_Handler();
  800127c:	f000 f91c 	bl	80014b8 <Error_Handler>
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-    buf[0] = 0x80 | (0x01 & 0x7F);
-    buf[1] = 0x00;
-    HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
+  }
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
  8001280:	230f      	movs	r3, #15
  8001282:	607b      	str	r3, [r7, #4]
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
-
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
  8001284:	2302      	movs	r3, #2
  8001286:	60bb      	str	r3, [r7, #8]
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
  8001288:	2300      	movs	r3, #0
  800128a:	60fb      	str	r3, [r7, #12]
-    buf[0] = 0x80 | (0x01 & 0x7F);
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
  800128c:	f44f 6380 	mov.w	r3, #1024	; 0x400
  8001290:	613b      	str	r3, [r7, #16]
-    buf[1] = 0x00;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
  8001292:	2300      	movs	r3, #0
  8001294:	617b      	str	r3, [r7, #20]
-    HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
  8001296:	1d3b      	adds	r3, r7, #4
  8001298:	2102      	movs	r1, #2
  800129a:	4618      	mov	r0, r3
@@ -1768,17 +1768,17 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  80012a0:	4603      	mov	r3, r0
  80012a2:	2b00      	cmp	r3, #0
  80012a4:	d001      	beq.n	80012aa <SystemClock_Config+0x96>
-
-    //dbg_printf("read Mode A 2 : %x - %x \n", read[0], read[1]);
+  {
+    Error_Handler();
  80012a6:	f000 f907 	bl	80014b8 <Error_Handler>
-    HAL_Delay(100);
-
-
-
+  }
+  /** Configure the Systick interrupt time
+  */
+  __HAL_RCC_PLLI2S_ENABLE();
  80012aa:	4b03      	ldr	r3, [pc, #12]	; (80012b8 <SystemClock_Config+0xa4>)
  80012ac:	2201      	movs	r2, #1
  80012ae:	601a      	str	r2, [r3, #0]
-
+}
  80012b0:	bf00      	nop
  80012b2:	3750      	adds	r7, #80	; 0x50
  80012b4:	46bd      	mov	sp, r7
@@ -1786,82 +1786,82 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  80012b8:	42420070 	.word	0x42420070
 
 080012bc <MX_SPI1_Init>:
-
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-  buf[0] = (0x00 & 0x7F);
-  buf[1] = 0x00;
-
-  HAL_SPI_Transmit(&hspi3, &buf[0], 2, 1000);
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
  80012bc:	b580      	push	{r7, lr}
  80012be:	af00      	add	r7, sp, #0
 
-  HAL_Delay(1000);
+  /* USER CODE BEGIN SPI1_Init 1 */
 
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
-  buf[0] = 0x80 | (0x00 & 0x7F);
-  buf[1] = 0x00;
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
  80012c0:	4b17      	ldr	r3, [pc, #92]	; (8001320 <MX_SPI1_Init+0x64>)
  80012c2:	4a18      	ldr	r2, [pc, #96]	; (8001324 <MX_SPI1_Init+0x68>)
  80012c4:	601a      	str	r2, [r3, #0]
-  HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
+  hspi1.Init.Mode = SPI_MODE_SLAVE;
  80012c6:	4b16      	ldr	r3, [pc, #88]	; (8001320 <MX_SPI1_Init+0x64>)
  80012c8:	2200      	movs	r2, #0
  80012ca:	605a      	str	r2, [r3, #4]
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES_RXONLY;
  80012cc:	4b14      	ldr	r3, [pc, #80]	; (8001320 <MX_SPI1_Init+0x64>)
  80012ce:	f44f 6280 	mov.w	r2, #1024	; 0x400
  80012d2:	609a      	str	r2, [r3, #8]
-
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
  80012d4:	4b12      	ldr	r3, [pc, #72]	; (8001320 <MX_SPI1_Init+0x64>)
  80012d6:	2200      	movs	r2, #0
  80012d8:	60da      	str	r2, [r3, #12]
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_RESET);
+  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
  80012da:	4b11      	ldr	r3, [pc, #68]	; (8001320 <MX_SPI1_Init+0x64>)
  80012dc:	2202      	movs	r2, #2
  80012de:	611a      	str	r2, [r3, #16]
-  buf[0] = 0x80 | (0x00 & 0x7F);
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
  80012e0:	4b0f      	ldr	r3, [pc, #60]	; (8001320 <MX_SPI1_Init+0x64>)
  80012e2:	2200      	movs	r2, #0
  80012e4:	615a      	str	r2, [r3, #20]
-  buf[1] = 0x00;
+  hspi1.Init.NSS = SPI_NSS_HARD_INPUT;
  80012e6:	4b0e      	ldr	r3, [pc, #56]	; (8001320 <MX_SPI1_Init+0x64>)
  80012e8:	2200      	movs	r2, #0
  80012ea:	619a      	str	r2, [r3, #24]
-  HAL_SPI_TransmitReceive(&hspi3, &buf[0], &read[0], 2, 1000);
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
  80012ec:	4b0c      	ldr	r3, [pc, #48]	; (8001320 <MX_SPI1_Init+0x64>)
  80012ee:	2208      	movs	r2, #8
  80012f0:	61da      	str	r2, [r3, #28]
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
  80012f2:	4b0b      	ldr	r3, [pc, #44]	; (8001320 <MX_SPI1_Init+0x64>)
  80012f4:	2200      	movs	r2, #0
  80012f6:	621a      	str	r2, [r3, #32]
-
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
  80012f8:	4b09      	ldr	r3, [pc, #36]	; (8001320 <MX_SPI1_Init+0x64>)
  80012fa:	2200      	movs	r2, #0
  80012fc:	625a      	str	r2, [r3, #36]	; 0x24
-  dbg_printf("read2 : %x - %x \n", read[0], read[1]);
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
  80012fe:	4b08      	ldr	r3, [pc, #32]	; (8001320 <MX_SPI1_Init+0x64>)
  8001300:	2200      	movs	r2, #0
  8001302:	629a      	str	r2, [r3, #40]	; 0x28
-
+  hspi1.Init.CRCPolynomial = 10;
  8001304:	4b06      	ldr	r3, [pc, #24]	; (8001320 <MX_SPI1_Init+0x64>)
  8001306:	220a      	movs	r2, #10
  8001308:	62da      	str	r2, [r3, #44]	; 0x2c
-  HAL_Delay(1000);
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
  800130a:	4805      	ldr	r0, [pc, #20]	; (8001320 <MX_SPI1_Init+0x64>)
  800130c:	f001 ffb4 	bl	8003278 <HAL_SPI_Init>
  8001310:	4603      	mov	r3, r0
  8001312:	2b00      	cmp	r3, #0
  8001314:	d001      	beq.n	800131a <MX_SPI1_Init+0x5e>
-#endif
-  uint8_t Rx_temp;
+  {
+    Error_Handler();
  8001316:	f000 f8cf 	bl	80014b8 <Error_Handler>
-  uint8_t SPI_RxDMABuffer[64] = {0};
-  uint8_t SPI_RxBuffer[1024] = {0};
-  uint8_t SPI_RxBufferCpy[1024] = {0};
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
 
-  uint32_t SPI_ByteCount = 0;
-  uint8_t SPI_CNVCount = 32;
+  /* USER CODE END SPI1_Init 2 */
+
+}
  800131a:	bf00      	nop
  800131c:	bd80      	pop	{r7, pc}
  800131e:	bf00      	nop
@@ -1869,148 +1869,148 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  8001324:	40013000 	.word	0x40013000
 
 08001328 <MX_SPI3_Init>:
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  uint8_t initial = 1;
-  uint8_t counter = 0;
-  uint32_t starttime = DWT->CYCCNT;
+  * @brief SPI3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI3_Init(void)
+{
  8001328:	b580      	push	{r7, lr}
  800132a:	af00      	add	r7, sp, #0
-  {
-    /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+  /* USER CODE BEGIN SPI3_Init 1 */
 
-	  while (__HAL_GPIO_EXTI_GET_IT(GPIO_PIN_4) == 0x00u)
+  /* USER CODE END SPI3_Init 1 */
+  /* SPI3 parameter configuration*/
+  hspi3.Instance = SPI3;
  800132c:	4b17      	ldr	r3, [pc, #92]	; (800138c <MX_SPI3_Init+0x64>)
  800132e:	4a18      	ldr	r2, [pc, #96]	; (8001390 <MX_SPI3_Init+0x68>)
  8001330:	601a      	str	r2, [r3, #0]
-	  {
+  hspi3.Init.Mode = SPI_MODE_MASTER;
  8001332:	4b16      	ldr	r3, [pc, #88]	; (800138c <MX_SPI3_Init+0x64>)
  8001334:	f44f 7282 	mov.w	r2, #260	; 0x104
  8001338:	605a      	str	r2, [r3, #4]
-
+  hspi3.Init.Direction = SPI_DIRECTION_2LINES;
  800133a:	4b14      	ldr	r3, [pc, #80]	; (800138c <MX_SPI3_Init+0x64>)
  800133c:	2200      	movs	r2, #0
  800133e:	609a      	str	r2, [r3, #8]
-	  }
+  hspi3.Init.DataSize = SPI_DATASIZE_8BIT;
  8001340:	4b12      	ldr	r3, [pc, #72]	; (800138c <MX_SPI3_Init+0x64>)
  8001342:	2200      	movs	r2, #0
  8001344:	60da      	str	r2, [r3, #12]
-
+  hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
  8001346:	4b11      	ldr	r3, [pc, #68]	; (800138c <MX_SPI3_Init+0x64>)
  8001348:	2200      	movs	r2, #0
  800134a:	611a      	str	r2, [r3, #16]
-	  __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_4);
+  hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
  800134c:	4b0f      	ldr	r3, [pc, #60]	; (800138c <MX_SPI3_Init+0x64>)
  800134e:	2200      	movs	r2, #0
  8001350:	615a      	str	r2, [r3, #20]
-	  //HAL_GPIO_EXTI_Callback(GPIO_PIN_4);
+  hspi3.Init.NSS = SPI_NSS_SOFT;
  8001352:	4b0e      	ldr	r3, [pc, #56]	; (800138c <MX_SPI3_Init+0x64>)
  8001354:	f44f 7200 	mov.w	r2, #512	; 0x200
  8001358:	619a      	str	r2, [r3, #24]
-	  EXTI0_Flag = 1;
+  hspi3.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
  800135a:	4b0c      	ldr	r3, [pc, #48]	; (800138c <MX_SPI3_Init+0x64>)
  800135c:	2208      	movs	r2, #8
  800135e:	61da      	str	r2, [r3, #28]
-	 // __HAL_SPI_ENABLE(&hspi1);
+  hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
  8001360:	4b0a      	ldr	r3, [pc, #40]	; (800138c <MX_SPI3_Init+0x64>)
  8001362:	2200      	movs	r2, #0
  8001364:	621a      	str	r2, [r3, #32]
-
+  hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
  8001366:	4b09      	ldr	r3, [pc, #36]	; (800138c <MX_SPI3_Init+0x64>)
  8001368:	2200      	movs	r2, #0
  800136a:	625a      	str	r2, [r3, #36]	; 0x24
-	  if (EXTI0_Flag)
+  hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
  800136c:	4b07      	ldr	r3, [pc, #28]	; (800138c <MX_SPI3_Init+0x64>)
  800136e:	2200      	movs	r2, #0
  8001370:	629a      	str	r2, [r3, #40]	; 0x28
-	  {
+  hspi3.Init.CRCPolynomial = 10;
  8001372:	4b06      	ldr	r3, [pc, #24]	; (800138c <MX_SPI3_Init+0x64>)
  8001374:	220a      	movs	r2, #10
  8001376:	62da      	str	r2, [r3, #44]	; 0x2c
-		  if (initial)
+  if (HAL_SPI_Init(&hspi3) != HAL_OK)
  8001378:	4804      	ldr	r0, [pc, #16]	; (800138c <MX_SPI3_Init+0x64>)
  800137a:	f001 ff7d 	bl	8003278 <HAL_SPI_Init>
  800137e:	4603      	mov	r3, r0
  8001380:	2b00      	cmp	r3, #0
  8001382:	d001      	beq.n	8001388 <MX_SPI3_Init+0x60>
-		  {
-			  initial = 0;
+  {
+    Error_Handler();
  8001384:	f000 f898 	bl	80014b8 <Error_Handler>
-			  starttime = DWT->CYCCNT;
-			  startMsec = HAL_GetTick();
-		  }
-		  EXTI0_Flag = 0;
-		  Rx_temp = *(__IO uint8_t *)&hspi1.Instance->DR;
-		  /*if (Rx_temp > 0x00)
+  }
+  /* USER CODE BEGIN SPI3_Init 2 */
+
+  /* USER CODE END SPI3_Init 2 */
+
+}
  8001388:	bf00      	nop
  800138a:	bd80      	pop	{r7, pc}
  800138c:	20000a0c 	.word	0x20000a0c
  8001390:	40003c00 	.word	0x40003c00
 
 08001394 <MX_USART2_UART_Init>:
-		  }*/
-		  __HAL_SPI_ENABLE(&hspi1);
-
-		  hspi1.hdmarx->Instance->CCR &= ~DMA_CCR_EN;
-		  hspi1.hdmarx->Instance->CNDTR = 64;
-		  hspi1.hdmarx->Instance->CPAR = (uint32_t)&(hspi1.Instance->DR);
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
  8001394:	b580      	push	{r7, lr}
  8001396:	af00      	add	r7, sp, #0
-			hspi1.hdmarx->Instance->CCR |= DMA_CCR_EN;
+  /* USER CODE END USART2_Init 0 */
 
-			while(hspi1->State == )
+  /* USER CODE BEGIN USART2_Init 1 */
 
-
-		  /*if (counter >=3)
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
  8001398:	4b11      	ldr	r3, [pc, #68]	; (80013e0 <MX_USART2_UART_Init+0x4c>)
  800139a:	4a12      	ldr	r2, [pc, #72]	; (80013e4 <MX_USART2_UART_Init+0x50>)
  800139c:	601a      	str	r2, [r3, #0]
-		  {
+  huart2.Init.BaudRate = 115200;
  800139e:	4b10      	ldr	r3, [pc, #64]	; (80013e0 <MX_USART2_UART_Init+0x4c>)
  80013a0:	f44f 32e1 	mov.w	r2, #115200	; 0x1c200
  80013a4:	605a      	str	r2, [r3, #4]
-			  dbg_printf("c\r\n");
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
  80013a6:	4b0e      	ldr	r3, [pc, #56]	; (80013e0 <MX_USART2_UART_Init+0x4c>)
  80013a8:	2200      	movs	r2, #0
  80013aa:	609a      	str	r2, [r3, #8]
-		  }*/
+  huart2.Init.StopBits = UART_STOPBITS_1;
  80013ac:	4b0c      	ldr	r3, [pc, #48]	; (80013e0 <MX_USART2_UART_Init+0x4c>)
  80013ae:	2200      	movs	r2, #0
  80013b0:	60da      	str	r2, [r3, #12]
-
+  huart2.Init.Parity = UART_PARITY_NONE;
  80013b2:	4b0b      	ldr	r3, [pc, #44]	; (80013e0 <MX_USART2_UART_Init+0x4c>)
  80013b4:	2200      	movs	r2, #0
  80013b6:	611a      	str	r2, [r3, #16]
-
+  huart2.Init.Mode = UART_MODE_TX;
  80013b8:	4b09      	ldr	r3, [pc, #36]	; (80013e0 <MX_USART2_UART_Init+0x4c>)
  80013ba:	2208      	movs	r2, #8
  80013bc:	615a      	str	r2, [r3, #20]
-#if 0
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
  80013be:	4b08      	ldr	r3, [pc, #32]	; (80013e0 <MX_USART2_UART_Init+0x4c>)
  80013c0:	2200      	movs	r2, #0
  80013c2:	619a      	str	r2, [r3, #24]
-		  while (SPI_ByteCount < SAMPLE_SIZE)
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
  80013c4:	4b06      	ldr	r3, [pc, #24]	; (80013e0 <MX_USART2_UART_Init+0x4c>)
  80013c6:	2200      	movs	r2, #0
  80013c8:	61da      	str	r2, [r3, #28]
-		  {
+  if (HAL_UART_Init(&huart2) != HAL_OK)
  80013ca:	4805      	ldr	r0, [pc, #20]	; (80013e0 <MX_USART2_UART_Init+0x4c>)
  80013cc:	f002 fa20 	bl	8003810 <HAL_UART_Init>
  80013d0:	4603      	mov	r3, r0
  80013d2:	2b00      	cmp	r3, #0
  80013d4:	d001      	beq.n	80013da <MX_USART2_UART_Init+0x46>
-
-			  // Check the RXNE flag
+  {
+    Error_Handler();
  80013d6:	f000 f86f 	bl	80014b8 <Error_Handler>
-			  if (__HAL_SPI_GET_FLAG(&hspi1, SPI_FLAG_RXNE))//
-			  {
-				  // transfer the received data from DR register to memory
-				  SPI_RxBuffer[RxBuf_Idn] = *(__IO uint8_t *)&hspi1.Instance->DR;
-				  /*if (SPI_RxBuffer[RxBuf_Idn] > 0x00)
-					{
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
  80013da:	bf00      	nop
  80013dc:	bd80      	pop	{r7, pc}
  80013de:	bf00      	nop
@@ -2018,18 +2018,18 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  80013e4:	40004400 	.word	0x40004400
 
 080013e8 <MX_DMA_Init>:
-						//dbg_printf("%x \r\n", SPI_RxBuffer[RxBuf_Idn]);
-					}*/
 
-				  RxBuf_Idn++;
-				  SPI_ByteCount++;
-			  }
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
  80013e8:	b580      	push	{r7, lr}
  80013ea:	b082      	sub	sp, #8
  80013ec:	af00      	add	r7, sp, #0
-		  }
-#endif
-		  __HAL_DMA_DISABLE(hspi1.hdmarx);
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
  80013ee:	4b0c      	ldr	r3, [pc, #48]	; (8001420 <MX_DMA_Init+0x38>)
  80013f0:	695b      	ldr	r3, [r3, #20]
  80013f2:	4a0b      	ldr	r2, [pc, #44]	; (8001420 <MX_DMA_Init+0x38>)
@@ -2040,19 +2040,19 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  80013fe:	f003 0301 	and.w	r3, r3, #1
  8001402:	607b      	str	r3, [r7, #4]
  8001404:	687b      	ldr	r3, [r7, #4]
-		  __HAL_SPI_DISABLE(&hspi1);
-		  //SPI_CNVCount++;
-		  //RxBuf_Idn = SPI_CNVCount * SPI_CNVByteNum;
-			  //dbg_printf("%d \r\n", RxBuf_Idn);
+
+  /* DMA interrupt init */
+  /* DMA1_Channel7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
  8001406:	2200      	movs	r2, #0
  8001408:	2100      	movs	r1, #0
  800140a:	2011      	movs	r0, #17
  800140c:	f000 fc1f 	bl	8001c4e <HAL_NVIC_SetPriority>
-		  //RxBuf_Idn = 0;
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
  8001410:	2011      	movs	r0, #17
  8001412:	f000 fc38 	bl	8001c86 <HAL_NVIC_EnableIRQ>
-		  //HAL_Delay(1000);
-		  memcpy(&SPI_RxBufferCpy[RxBuf_Idn], &SPI_RxBuffer[RxBuf_Idn],64);
+
+}
  8001416:	bf00      	nop
  8001418:	3708      	adds	r7, #8
  800141a:	46bd      	mov	sp, r7
@@ -2061,25 +2061,25 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  8001420:	40021000 	.word	0x40021000
 
 08001424 <MX_GPIO_Init>:
-		  counter++;
-	  }
-	  if (RxBuf_Idn >= SAMPLE_TOTAL_SIZE)
-	  {
-		  uint32_t finishTime = DWT->CYCCNT;
-		  uint32_t finishMsec = HAL_GetTick();
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
  8001424:	b580      	push	{r7, lr}
  8001426:	b088      	sub	sp, #32
  8001428:	af00      	add	r7, sp, #0
-		  float msecPass = (finishTime - starttime) * 10;
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
  800142a:	f107 0310 	add.w	r3, r7, #16
  800142e:	2200      	movs	r2, #0
  8001430:	601a      	str	r2, [r3, #0]
  8001432:	605a      	str	r2, [r3, #4]
  8001434:	609a      	str	r2, [r3, #8]
  8001436:	60da      	str	r2, [r3, #12]
-		  msecPass = (float)((msecPass / 1000000) * 1.4);
-		  dbg_printf("%d - %d = %f %f kHz   %d - %d\r\n", finishTime, starttime, msecPass, (float)(((SAMPLE_TOTAL_SIZE / 32))) / msecPass, startMsec, finishMsec);
-		  RxBuf_Idn = 0;
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
  8001438:	4b1d      	ldr	r3, [pc, #116]	; (80014b0 <MX_GPIO_Init+0x8c>)
  800143a:	699b      	ldr	r3, [r3, #24]
  800143c:	4a1c      	ldr	r2, [pc, #112]	; (80014b0 <MX_GPIO_Init+0x8c>)
@@ -2090,7 +2090,7 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  8001448:	f003 0304 	and.w	r3, r3, #4
  800144c:	60fb      	str	r3, [r7, #12]
  800144e:	68fb      	ldr	r3, [r7, #12]
-		  starttime = finishTime;
+  __HAL_RCC_GPIOC_CLK_ENABLE();
  8001450:	4b17      	ldr	r3, [pc, #92]	; (80014b0 <MX_GPIO_Init+0x8c>)
  8001452:	699b      	ldr	r3, [r3, #24]
  8001454:	4a16      	ldr	r2, [pc, #88]	; (80014b0 <MX_GPIO_Init+0x8c>)
@@ -2101,7 +2101,7 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  8001460:	f003 0310 	and.w	r3, r3, #16
  8001464:	60bb      	str	r3, [r7, #8]
  8001466:	68bb      	ldr	r3, [r7, #8]
-
+  __HAL_RCC_GPIOD_CLK_ENABLE();
  8001468:	4b11      	ldr	r3, [pc, #68]	; (80014b0 <MX_GPIO_Init+0x8c>)
  800146a:	699b      	ldr	r3, [r3, #24]
  800146c:	4a10      	ldr	r2, [pc, #64]	; (80014b0 <MX_GPIO_Init+0x8c>)
@@ -2113,33 +2113,33 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  800147c:	607b      	str	r3, [r7, #4]
  800147e:	687b      	ldr	r3, [r7, #4]
 
-		  for (int i=0; i<1024; i++)
-		  {
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0|ADC_SYNC_START_Pin, GPIO_PIN_RESET);
  8001480:	2200      	movs	r2, #0
  8001482:	2103      	movs	r1, #3
  8001484:	480b      	ldr	r0, [pc, #44]	; (80014b4 <MX_GPIO_Init+0x90>)
  8001486:	f001 f9bb 	bl	8002800 <HAL_GPIO_WritePin>
-			  /*if (SPI_RxBuffer[i] > 0x00)
-				  dbg_printf("[%d] : %x\r\n", i, SPI_RxBuffer[i]);*/
-			  //HAL_Delay(10);
+
+  /*Configure GPIO pins : PD0 ADC_SYNC_START_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_0|ADC_SYNC_START_Pin;
  800148a:	2303      	movs	r3, #3
  800148c:	613b      	str	r3, [r7, #16]
-		  }
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
  800148e:	2301      	movs	r3, #1
  8001490:	617b      	str	r3, [r7, #20]
-
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
  8001492:	2300      	movs	r3, #0
  8001494:	61bb      	str	r3, [r7, #24]
-	  }
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
  8001496:	2302      	movs	r3, #2
  8001498:	61fb      	str	r3, [r7, #28]
-
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
  800149a:	f107 0310 	add.w	r3, r7, #16
  800149e:	4619      	mov	r1, r3
  80014a0:	4804      	ldr	r0, [pc, #16]	; (80014b4 <MX_GPIO_Init+0x90>)
  80014a2:	f001 f853 	bl	800254c <HAL_GPIO_Init>
 
-  }
+}
  80014a6:	bf00      	nop
  80014a8:	3720      	adds	r7, #32
  80014aa:	46bd      	mov	sp, r7
@@ -2149,12 +2149,12 @@ static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma)
  80014b4:	40011400 	.word	0x40011400
 
 080014b8 <Error_Handler>:
+/**
+  * @brief  This function is executed in case of error occurrence.
   * @retval None
   */
-void SystemClock_Config(void)
+void Error_Handler(void)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
  80014b8:	b480      	push	{r7}
  80014ba:	af00      	add	r7, sp, #0
   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
@@ -2164,27 +2164,27 @@ __STATIC_FORCEINLINE void __disable_irq(void)
 {
   __ASM volatile ("cpsid i" : : : "memory");
  80014bc:	b672      	cpsid	i
-
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
  80014be:	e7fe      	b.n	80014be <Error_Handler+0x6>
 
 080014c0 <HAL_MspInit>:
-/* USER CODE BEGIN 0 */
-
 /* USER CODE END 0 */
 /**
   * Initializes the Global MSP.
   */
+void HAL_MspInit(void)
+{
  80014c0:	b480      	push	{r7}
  80014c2:	b085      	sub	sp, #20
  80014c4:	af00      	add	r7, sp, #0
-void HAL_MspInit(void)
-{
   /* USER CODE BEGIN MspInit 0 */
 
   /* USER CODE END MspInit 0 */
+
+  __HAL_RCC_AFIO_CLK_ENABLE();
  80014c6:	4b15      	ldr	r3, [pc, #84]	; (800151c <HAL_MspInit+0x5c>)
  80014c8:	699b      	ldr	r3, [r3, #24]
  80014ca:	4a14      	ldr	r2, [pc, #80]	; (800151c <HAL_MspInit+0x5c>)
@@ -2195,7 +2195,7 @@ void HAL_MspInit(void)
  80014d6:	f003 0301 	and.w	r3, r3, #1
  80014da:	60bb      	str	r3, [r7, #8]
  80014dc:	68bb      	ldr	r3, [r7, #8]
-
+  __HAL_RCC_PWR_CLK_ENABLE();
  80014de:	4b0f      	ldr	r3, [pc, #60]	; (800151c <HAL_MspInit+0x5c>)
  80014e0:	69db      	ldr	r3, [r3, #28]
  80014e2:	4a0e      	ldr	r2, [pc, #56]	; (800151c <HAL_MspInit+0x5c>)
@@ -2206,12 +2206,12 @@ void HAL_MspInit(void)
  80014ee:	f003 5380 	and.w	r3, r3, #268435456	; 0x10000000
  80014f2:	607b      	str	r3, [r7, #4]
  80014f4:	687b      	ldr	r3, [r7, #4]
-  __HAL_RCC_AFIO_CLK_ENABLE();
-  __HAL_RCC_PWR_CLK_ENABLE();
 
   /* System interrupt init*/
 
   /** NOJTAG: JTAG-DP Disabled and SW-DP Enabled
+  */
+  __HAL_AFIO_REMAP_SWJ_NOJTAG();
  80014f6:	4b0a      	ldr	r3, [pc, #40]	; (8001520 <HAL_MspInit+0x60>)
  80014f8:	685b      	ldr	r3, [r3, #4]
  80014fa:	60fb      	str	r3, [r7, #12]
@@ -2224,11 +2224,11 @@ void HAL_MspInit(void)
  800150c:	4a04      	ldr	r2, [pc, #16]	; (8001520 <HAL_MspInit+0x60>)
  800150e:	68fb      	ldr	r3, [r7, #12]
  8001510:	6053      	str	r3, [r2, #4]
-  */
-  __HAL_AFIO_REMAP_SWJ_NOJTAG();
 
   /* USER CODE BEGIN MspInit 1 */
 
+  /* USER CODE END MspInit 1 */
+}
  8001512:	bf00      	nop
  8001514:	3714      	adds	r7, #20
  8001516:	46bd      	mov	sp, r7
@@ -2238,35 +2238,35 @@ void HAL_MspInit(void)
  8001520:	40010000 	.word	0x40010000
 
 08001524 <HAL_SPI_MspInit>:
-/**
-* @brief SPI MSP Initialization
 * This function configures the hardware resources used in this example
 * @param hspi: SPI handle pointer
 * @retval None
 */
+void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
+{
  8001524:	b580      	push	{r7, lr}
  8001526:	b08c      	sub	sp, #48	; 0x30
  8001528:	af00      	add	r7, sp, #0
  800152a:	6078      	str	r0, [r7, #4]
-void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
  800152c:	f107 031c 	add.w	r3, r7, #28
  8001530:	2200      	movs	r2, #0
  8001532:	601a      	str	r2, [r3, #0]
  8001534:	605a      	str	r2, [r3, #4]
  8001536:	609a      	str	r2, [r3, #8]
  8001538:	60da      	str	r2, [r3, #12]
-{
+  if(hspi->Instance==SPI1)
  800153a:	687b      	ldr	r3, [r7, #4]
  800153c:	681b      	ldr	r3, [r3, #0]
  800153e:	4a41      	ldr	r2, [pc, #260]	; (8001644 <HAL_SPI_MspInit+0x120>)
  8001540:	4293      	cmp	r3, r2
  8001542:	d136      	bne.n	80015b2 <HAL_SPI_MspInit+0x8e>
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(hspi->Instance==SPI1)
   {
   /* USER CODE BEGIN SPI1_MspInit 0 */
 
   /* USER CODE END SPI1_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_SPI1_CLK_ENABLE();
  8001544:	4b40      	ldr	r3, [pc, #256]	; (8001648 <HAL_SPI_MspInit+0x124>)
  8001546:	699b      	ldr	r3, [r3, #24]
  8001548:	4a3f      	ldr	r2, [pc, #252]	; (8001648 <HAL_SPI_MspInit+0x124>)
@@ -2277,8 +2277,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  8001554:	f403 5380 	and.w	r3, r3, #4096	; 0x1000
  8001558:	61bb      	str	r3, [r7, #24]
  800155a:	69bb      	ldr	r3, [r7, #24]
-    /* Peripheral clock enable */
-    __HAL_RCC_SPI1_CLK_ENABLE();
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
  800155c:	4b3a      	ldr	r3, [pc, #232]	; (8001648 <HAL_SPI_MspInit+0x124>)
  800155e:	699b      	ldr	r3, [r3, #24]
  8001560:	4a39      	ldr	r2, [pc, #228]	; (8001648 <HAL_SPI_MspInit+0x124>)
@@ -2289,62 +2289,62 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  800156c:	f003 0304 	and.w	r3, r3, #4
  8001570:	617b      	str	r3, [r7, #20]
  8001572:	697b      	ldr	r3, [r7, #20]
-
-    __HAL_RCC_GPIOA_CLK_ENABLE();
     /**SPI1 GPIO Configuration
     PA4     ------> SPI1_NSS
     PA5     ------> SPI1_SCK
     PA7     ------> SPI1_MOSI
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_7;
  8001574:	23b0      	movs	r3, #176	; 0xb0
  8001576:	61fb      	str	r3, [r7, #28]
-    */
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
  8001578:	2300      	movs	r3, #0
  800157a:	623b      	str	r3, [r7, #32]
-    GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_7;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
  800157c:	2300      	movs	r3, #0
  800157e:	627b      	str	r3, [r7, #36]	; 0x24
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
  8001580:	f107 031c 	add.w	r3, r7, #28
  8001584:	4619      	mov	r1, r3
  8001586:	4831      	ldr	r0, [pc, #196]	; (800164c <HAL_SPI_MspInit+0x128>)
  8001588:	f000 ffe0 	bl	800254c <HAL_GPIO_Init>
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /* USER CODE BEGIN SPI1_MspInit 1 */
+    GPIO_InitStruct.Pin = GPIO_PIN_4;
  800158c:	2310      	movs	r3, #16
  800158e:	61fb      	str	r3, [r7, #28]
-    /* SPI1 DMA Init */
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
  8001590:	4b2f      	ldr	r3, [pc, #188]	; (8001650 <HAL_SPI_MspInit+0x12c>)
  8001592:	623b      	str	r3, [r7, #32]
-    /* SPI1_RX Init */
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
  8001594:	2300      	movs	r3, #0
  8001596:	627b      	str	r3, [r7, #36]	; 0x24
-    hdma_spi1_rx.Instance = DMA1_Channel2;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
  8001598:	f107 031c 	add.w	r3, r7, #28
  800159c:	4619      	mov	r1, r3
  800159e:	482b      	ldr	r0, [pc, #172]	; (800164c <HAL_SPI_MspInit+0x128>)
  80015a0:	f000 ffd4 	bl	800254c <HAL_GPIO_Init>
-    hdma_spi1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_4);
  80015a4:	4b2b      	ldr	r3, [pc, #172]	; (8001654 <HAL_SPI_MspInit+0x130>)
  80015a6:	2210      	movs	r2, #16
  80015a8:	615a      	str	r2, [r3, #20]
-    hdma_spi1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    HAL_NVIC_EnableIRQ(EXTI4_IRQn);
  80015aa:	200a      	movs	r0, #10
  80015ac:	f000 fb6b 	bl	8001c86 <HAL_NVIC_EnableIRQ>
-    /* Peripheral clock enable */
-    __HAL_RCC_SPI3_CLK_ENABLE();
+  /* USER CODE BEGIN SPI3_MspInit 1 */
 
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    /**SPI3 GPIO Configuration
-    PC10     ------> SPI3_SCK
+  /* USER CODE END SPI3_MspInit 1 */
+  }
+
+}
  80015b0:	e044      	b.n	800163c <HAL_SPI_MspInit+0x118>
-    hdma_spi1_rx.Init.Mode = DMA_NORMAL;
+  else if(hspi->Instance==SPI3)
  80015b2:	687b      	ldr	r3, [r7, #4]
  80015b4:	681b      	ldr	r3, [r3, #0]
  80015b6:	4a28      	ldr	r2, [pc, #160]	; (8001658 <HAL_SPI_MspInit+0x134>)
  80015b8:	4293      	cmp	r3, r2
  80015ba:	d13f      	bne.n	800163c <HAL_SPI_MspInit+0x118>
-
+    __HAL_RCC_SPI3_CLK_ENABLE();
  80015bc:	4b22      	ldr	r3, [pc, #136]	; (8001648 <HAL_SPI_MspInit+0x124>)
  80015be:	69db      	ldr	r3, [r3, #28]
  80015c0:	4a21      	ldr	r2, [pc, #132]	; (8001648 <HAL_SPI_MspInit+0x124>)
@@ -2355,7 +2355,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  80015cc:	f403 4300 	and.w	r3, r3, #32768	; 0x8000
  80015d0:	613b      	str	r3, [r7, #16]
  80015d2:	693b      	ldr	r3, [r7, #16]
-
+    __HAL_RCC_GPIOC_CLK_ENABLE();
  80015d4:	4b1c      	ldr	r3, [pc, #112]	; (8001648 <HAL_SPI_MspInit+0x124>)
  80015d6:	699b      	ldr	r3, [r3, #24]
  80015d8:	4a1b      	ldr	r2, [pc, #108]	; (8001648 <HAL_SPI_MspInit+0x124>)
@@ -2366,35 +2366,35 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  80015e4:	f003 0310 	and.w	r3, r3, #16
  80015e8:	60fb      	str	r3, [r7, #12]
  80015ea:	68fb      	ldr	r3, [r7, #12]
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_12;
  80015ec:	f44f 53a0 	mov.w	r3, #5120	; 0x1400
  80015f0:	61fb      	str	r3, [r7, #28]
-    __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_4);
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  80015f2:	2302      	movs	r3, #2
  80015f4:	623b      	str	r3, [r7, #32]
-//    HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
  80015f6:	2303      	movs	r3, #3
  80015f8:	62bb      	str	r3, [r7, #40]	; 0x28
-//    HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
  80015fa:	f107 031c 	add.w	r3, r7, #28
  80015fe:	4619      	mov	r1, r3
  8001600:	4816      	ldr	r0, [pc, #88]	; (800165c <HAL_SPI_MspInit+0x138>)
  8001602:	f000 ffa3 	bl	800254c <HAL_GPIO_Init>
-  /* USER CODE END SPI1_MspInit 1 */
+    GPIO_InitStruct.Pin = GPIO_PIN_11;
  8001606:	f44f 6300 	mov.w	r3, #2048	; 0x800
  800160a:	61fb      	str	r3, [r7, #28]
-  }
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
  800160c:	2300      	movs	r3, #0
  800160e:	623b      	str	r3, [r7, #32]
-  else if(hspi->Instance==SPI3)
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
  8001610:	2300      	movs	r3, #0
  8001612:	627b      	str	r3, [r7, #36]	; 0x24
-  {
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
  8001614:	f107 031c 	add.w	r3, r7, #28
  8001618:	4619      	mov	r1, r3
  800161a:	4810      	ldr	r0, [pc, #64]	; (800165c <HAL_SPI_MspInit+0x138>)
  800161c:	f000 ff96 	bl	800254c <HAL_GPIO_Init>
-
+    __HAL_AFIO_REMAP_SPI3_ENABLE();
  8001620:	4b0f      	ldr	r3, [pc, #60]	; (8001660 <HAL_SPI_MspInit+0x13c>)
  8001622:	685b      	ldr	r3, [r3, #4]
  8001624:	62fb      	str	r3, [r7, #44]	; 0x2c
@@ -2407,7 +2407,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  8001636:	4a0a      	ldr	r2, [pc, #40]	; (8001660 <HAL_SPI_MspInit+0x13c>)
  8001638:	6afb      	ldr	r3, [r7, #44]	; 0x2c
  800163a:	6053      	str	r3, [r2, #4]
-    PC10     ------> SPI3_SCK
+}
  800163c:	bf00      	nop
  800163e:	3730      	adds	r7, #48	; 0x30
  8001640:	46bd      	mov	sp, r7
@@ -2422,35 +2422,35 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  8001660:	40010000 	.word	0x40010000
 
 08001664 <HAL_UART_MspInit>:
-  {
-  /* USER CODE BEGIN SPI3_MspDeInit 0 */
-
-  /* USER CODE END SPI3_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_SPI3_CLK_DISABLE();
+* This function configures the hardware resources used in this example
+* @param huart: UART handle pointer
+* @retval None
+*/
+void HAL_UART_MspInit(UART_HandleTypeDef* huart)
+{
  8001664:	b580      	push	{r7, lr}
  8001666:	b08a      	sub	sp, #40	; 0x28
  8001668:	af00      	add	r7, sp, #0
  800166a:	6078      	str	r0, [r7, #4]
-
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
  800166c:	f107 0314 	add.w	r3, r7, #20
  8001670:	2200      	movs	r2, #0
  8001672:	601a      	str	r2, [r3, #0]
  8001674:	605a      	str	r2, [r3, #4]
  8001676:	609a      	str	r2, [r3, #8]
  8001678:	60da      	str	r2, [r3, #12]
-    /**SPI3 GPIO Configuration
+  if(huart->Instance==USART2)
  800167a:	687b      	ldr	r3, [r7, #4]
  800167c:	681b      	ldr	r3, [r3, #0]
  800167e:	4a39      	ldr	r2, [pc, #228]	; (8001764 <HAL_UART_MspInit+0x100>)
  8001680:	4293      	cmp	r3, r2
  8001682:	d16b      	bne.n	800175c <HAL_UART_MspInit+0xf8>
-    PC10     ------> SPI3_SCK
-    PC11     ------> SPI3_MISO
-    PC12     ------> SPI3_MOSI
-    */
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12);
+  {
+  /* USER CODE BEGIN USART2_MspInit 0 */
 
+  /* USER CODE END USART2_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_USART2_CLK_ENABLE();
  8001684:	4b38      	ldr	r3, [pc, #224]	; (8001768 <HAL_UART_MspInit+0x104>)
  8001686:	69db      	ldr	r3, [r3, #28]
  8001688:	4a37      	ldr	r2, [pc, #220]	; (8001768 <HAL_UART_MspInit+0x104>)
@@ -2461,8 +2461,8 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  8001694:	f403 3300 	and.w	r3, r3, #131072	; 0x20000
  8001698:	613b      	str	r3, [r7, #16]
  800169a:	693b      	ldr	r3, [r7, #16]
-  /* USER CODE BEGIN SPI3_MspDeInit 1 */
 
+    __HAL_RCC_GPIOD_CLK_ENABLE();
  800169c:	4b32      	ldr	r3, [pc, #200]	; (8001768 <HAL_UART_MspInit+0x104>)
  800169e:	699b      	ldr	r3, [r3, #24]
  80016a0:	4a31      	ldr	r2, [pc, #196]	; (8001768 <HAL_UART_MspInit+0x104>)
@@ -2473,41 +2473,41 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  80016ac:	f003 0320 	and.w	r3, r3, #32
  80016b0:	60fb      	str	r3, [r7, #12]
  80016b2:	68fb      	ldr	r3, [r7, #12]
-  /* USER CODE END SPI3_MspDeInit 1 */
-  }
-
-}
-
+    /**USART2 GPIO Configuration
+    PD5     ------> USART2_TX
+    PD6     ------> USART2_RX
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_5;
  80016b4:	2320      	movs	r3, #32
  80016b6:	617b      	str	r3, [r7, #20]
-/**
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  80016b8:	2302      	movs	r3, #2
  80016ba:	61bb      	str	r3, [r7, #24]
-* @brief UART MSP Initialization
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
  80016bc:	2303      	movs	r3, #3
  80016be:	623b      	str	r3, [r7, #32]
-* This function configures the hardware resources used in this example
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
  80016c0:	f107 0314 	add.w	r3, r7, #20
  80016c4:	4619      	mov	r1, r3
  80016c6:	4829      	ldr	r0, [pc, #164]	; (800176c <HAL_UART_MspInit+0x108>)
  80016c8:	f000 ff40 	bl	800254c <HAL_GPIO_Init>
-* @param huart: UART handle pointer
-* @retval None
+
+    GPIO_InitStruct.Pin = GPIO_PIN_6;
  80016cc:	2340      	movs	r3, #64	; 0x40
  80016ce:	617b      	str	r3, [r7, #20]
-*/
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
  80016d0:	2300      	movs	r3, #0
  80016d2:	61bb      	str	r3, [r7, #24]
-void HAL_UART_MspInit(UART_HandleTypeDef* huart)
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
  80016d4:	2300      	movs	r3, #0
  80016d6:	61fb      	str	r3, [r7, #28]
-{
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
  80016d8:	f107 0314 	add.w	r3, r7, #20
  80016dc:	4619      	mov	r1, r3
  80016de:	4823      	ldr	r0, [pc, #140]	; (800176c <HAL_UART_MspInit+0x108>)
  80016e0:	f000 ff34 	bl	800254c <HAL_GPIO_Init>
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(huart->Instance==USART2)
+
+    __HAL_AFIO_REMAP_USART2_ENABLE();
  80016e4:	4b22      	ldr	r3, [pc, #136]	; (8001770 <HAL_UART_MspInit+0x10c>)
  80016e6:	685b      	ldr	r3, [r3, #4]
  80016e8:	627b      	str	r3, [r7, #36]	; 0x24
@@ -2520,75 +2520,75 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
  80016fa:	4a1d      	ldr	r2, [pc, #116]	; (8001770 <HAL_UART_MspInit+0x10c>)
  80016fc:	6a7b      	ldr	r3, [r7, #36]	; 0x24
  80016fe:	6053      	str	r3, [r2, #4]
-  {
-  /* USER CODE BEGIN USART2_MspInit 0 */
 
-  /* USER CODE END USART2_MspInit 0 */
+    /* USART2 DMA Init */
+    /* USART2_TX Init */
+    hdma_usart2_tx.Instance = DMA1_Channel7;
  8001700:	4b1c      	ldr	r3, [pc, #112]	; (8001774 <HAL_UART_MspInit+0x110>)
  8001702:	4a1d      	ldr	r2, [pc, #116]	; (8001778 <HAL_UART_MspInit+0x114>)
  8001704:	601a      	str	r2, [r3, #0]
-    /* Peripheral clock enable */
+    hdma_usart2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
  8001706:	4b1b      	ldr	r3, [pc, #108]	; (8001774 <HAL_UART_MspInit+0x110>)
  8001708:	2210      	movs	r2, #16
  800170a:	605a      	str	r2, [r3, #4]
-    __HAL_RCC_USART2_CLK_ENABLE();
+    hdma_usart2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
  800170c:	4b19      	ldr	r3, [pc, #100]	; (8001774 <HAL_UART_MspInit+0x110>)
  800170e:	2200      	movs	r2, #0
  8001710:	609a      	str	r2, [r3, #8]
-
+    hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
  8001712:	4b18      	ldr	r3, [pc, #96]	; (8001774 <HAL_UART_MspInit+0x110>)
  8001714:	2280      	movs	r2, #128	; 0x80
  8001716:	60da      	str	r2, [r3, #12]
-    __HAL_RCC_GPIOD_CLK_ENABLE();
+    hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
  8001718:	4b16      	ldr	r3, [pc, #88]	; (8001774 <HAL_UART_MspInit+0x110>)
  800171a:	2200      	movs	r2, #0
  800171c:	611a      	str	r2, [r3, #16]
-    /**USART2 GPIO Configuration
+    hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
  800171e:	4b15      	ldr	r3, [pc, #84]	; (8001774 <HAL_UART_MspInit+0x110>)
  8001720:	2200      	movs	r2, #0
  8001722:	615a      	str	r2, [r3, #20]
-    PD5     ------> USART2_TX
+    hdma_usart2_tx.Init.Mode = DMA_NORMAL;
  8001724:	4b13      	ldr	r3, [pc, #76]	; (8001774 <HAL_UART_MspInit+0x110>)
  8001726:	2200      	movs	r2, #0
  8001728:	619a      	str	r2, [r3, #24]
-    PD6     ------> USART2_RX
+    hdma_usart2_tx.Init.Priority = DMA_PRIORITY_LOW;
  800172a:	4b12      	ldr	r3, [pc, #72]	; (8001774 <HAL_UART_MspInit+0x110>)
  800172c:	2200      	movs	r2, #0
  800172e:	61da      	str	r2, [r3, #28]
-    */
+    if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
  8001730:	4810      	ldr	r0, [pc, #64]	; (8001774 <HAL_UART_MspInit+0x110>)
  8001732:	f000 fac3 	bl	8001cbc <HAL_DMA_Init>
  8001736:	4603      	mov	r3, r0
  8001738:	2b00      	cmp	r3, #0
  800173a:	d001      	beq.n	8001740 <HAL_UART_MspInit+0xdc>
-    GPIO_InitStruct.Pin = GPIO_PIN_5;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    {
+      Error_Handler();
  800173c:	f7ff febc 	bl	80014b8 <Error_Handler>
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+    }
 
+    __HAL_LINKDMA(huart,hdmatx,hdma_usart2_tx);
  8001740:	687b      	ldr	r3, [r7, #4]
  8001742:	4a0c      	ldr	r2, [pc, #48]	; (8001774 <HAL_UART_MspInit+0x110>)
  8001744:	631a      	str	r2, [r3, #48]	; 0x30
  8001746:	4a0b      	ldr	r2, [pc, #44]	; (8001774 <HAL_UART_MspInit+0x110>)
  8001748:	687b      	ldr	r3, [r7, #4]
  800174a:	6253      	str	r3, [r2, #36]	; 0x24
-    GPIO_InitStruct.Pin = GPIO_PIN_6;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
+
+    /* USART2 interrupt Init */
+    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
  800174c:	2200      	movs	r2, #0
  800174e:	2100      	movs	r1, #0
  8001750:	2026      	movs	r0, #38	; 0x26
  8001752:	f000 fa7c 	bl	8001c4e <HAL_NVIC_SetPriority>
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
  8001756:	2026      	movs	r0, #38	; 0x26
  8001758:	f000 fa95 	bl	8001c86 <HAL_NVIC_EnableIRQ>
+  /* USER CODE BEGIN USART2_MspInit 1 */
 
-    __HAL_AFIO_REMAP_USART2_ENABLE();
+  /* USER CODE END USART2_MspInit 1 */
+  }
 
-    /* USART2 DMA Init */
-    /* USART2_TX Init */
-    hdma_usart2_tx.Instance = DMA1_Channel7;
+}
  800175c:	bf00      	nop
  800175e:	3728      	adds	r7, #40	; 0x28
  8001760:	46bd      	mov	sp, r7
@@ -2601,96 +2601,96 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
  8001778:	40020080 	.word	0x40020080
 
 0800177c <NMI_Handler>:
-
-/******************************************************************************/
-/*           Cortex-M3 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
   * @brief This function handles Non maskable interrupt.
- 800177c:	b480      	push	{r7}
- 800177e:	af00      	add	r7, sp, #0
   */
 void NMI_Handler(void)
 {
+ 800177c:	b480      	push	{r7}
+ 800177e:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
+  /* USER CODE END NonMaskableInt_IRQn 0 */
+  /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+  while (1)
  8001780:	e7fe      	b.n	8001780 <NMI_Handler+0x4>
 
 08001782 <HardFault_Handler>:
-  }
-  /* USER CODE END NonMaskableInt_IRQn 1 */
-}
 
 /**
   * @brief This function handles Hard fault interrupt.
- 8001782:	b480      	push	{r7}
- 8001784:	af00      	add	r7, sp, #0
   */
 void HardFault_Handler(void)
 {
+ 8001782:	b480      	push	{r7}
+ 8001784:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN HardFault_IRQn 0 */
+
+  /* USER CODE END HardFault_IRQn 0 */
+  while (1)
  8001786:	e7fe      	b.n	8001786 <HardFault_Handler+0x4>
 
 08001788 <MemManage_Handler>:
-    /* USER CODE END W1_HardFault_IRQn 0 */
-  }
-}
 
 /**
   * @brief This function handles Memory management fault.
- 8001788:	b480      	push	{r7}
- 800178a:	af00      	add	r7, sp, #0
   */
 void MemManage_Handler(void)
 {
+ 8001788:	b480      	push	{r7}
+ 800178a:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
+
+  /* USER CODE END MemoryManagement_IRQn 0 */
+  while (1)
  800178c:	e7fe      	b.n	800178c <MemManage_Handler+0x4>
 
 0800178e <BusFault_Handler>:
-    /* USER CODE END W1_MemoryManagement_IRQn 0 */
-  }
-}
 
 /**
   * @brief This function handles Prefetch fault, memory access fault.
- 800178e:	b480      	push	{r7}
- 8001790:	af00      	add	r7, sp, #0
   */
 void BusFault_Handler(void)
 {
+ 800178e:	b480      	push	{r7}
+ 8001790:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN BusFault_IRQn 0 */
+
+  /* USER CODE END BusFault_IRQn 0 */
+  while (1)
  8001792:	e7fe      	b.n	8001792 <BusFault_Handler+0x4>
 
 08001794 <UsageFault_Handler>:
-    /* USER CODE END W1_BusFault_IRQn 0 */
-  }
-}
 
 /**
   * @brief This function handles Undefined instruction or illegal state.
- 8001794:	b480      	push	{r7}
- 8001796:	af00      	add	r7, sp, #0
   */
 void UsageFault_Handler(void)
 {
+ 8001794:	b480      	push	{r7}
+ 8001796:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN UsageFault_IRQn 0 */
+
+  /* USER CODE END UsageFault_IRQn 0 */
+  while (1)
  8001798:	e7fe      	b.n	8001798 <UsageFault_Handler+0x4>
 
 0800179a <SVC_Handler>:
-    /* USER CODE END W1_UsageFault_IRQn 0 */
-  }
-}
 
 /**
   * @brief This function handles System service call via SWI instruction.
- 800179a:	b480      	push	{r7}
- 800179c:	af00      	add	r7, sp, #0
+  */
 void SVC_Handler(void)
 {
-  /* USER CODE BEGIN SVCall_IRQn 0 */
+ 800179a:	b480      	push	{r7}
+ 800179c:	af00      	add	r7, sp, #0
 
   /* USER CODE END SVCall_IRQn 0 */
   /* USER CODE BEGIN SVCall_IRQn 1 */
+
+  /* USER CODE END SVCall_IRQn 1 */
+}
  800179e:	bf00      	nop
  80017a0:	46bd      	mov	sp, r7
  80017a2:	bc80      	pop	{r7}
@@ -2698,19 +2698,19 @@ void SVC_Handler(void)
 
 080017a6 <DebugMon_Handler>:
 
-  /* USER CODE END SVCall_IRQn 1 */
-}
-
 /**
   * @brief This function handles Debug monitor.
- 80017a6:	b480      	push	{r7}
- 80017a8:	af00      	add	r7, sp, #0
+  */
 void DebugMon_Handler(void)
 {
-  /* USER CODE BEGIN DebugMonitor_IRQn 0 */
+ 80017a6:	b480      	push	{r7}
+ 80017a8:	af00      	add	r7, sp, #0
 
   /* USER CODE END DebugMonitor_IRQn 0 */
   /* USER CODE BEGIN DebugMonitor_IRQn 1 */
+
+  /* USER CODE END DebugMonitor_IRQn 1 */
+}
  80017aa:	bf00      	nop
  80017ac:	46bd      	mov	sp, r7
  80017ae:	bc80      	pop	{r7}
@@ -2718,19 +2718,19 @@ void DebugMon_Handler(void)
 
 080017b2 <PendSV_Handler>:
 
-  /* USER CODE END DebugMonitor_IRQn 1 */
-}
-
 /**
   * @brief This function handles Pendable request for system service.
- 80017b2:	b480      	push	{r7}
- 80017b4:	af00      	add	r7, sp, #0
+  */
 void PendSV_Handler(void)
 {
-  /* USER CODE BEGIN PendSV_IRQn 0 */
+ 80017b2:	b480      	push	{r7}
+ 80017b4:	af00      	add	r7, sp, #0
 
   /* USER CODE END PendSV_IRQn 0 */
   /* USER CODE BEGIN PendSV_IRQn 1 */
+
+  /* USER CODE END PendSV_IRQn 1 */
+}
  80017b6:	bf00      	nop
  80017b8:	46bd      	mov	sp, r7
  80017ba:	bc80      	pop	{r7}
@@ -2738,45 +2738,45 @@ void PendSV_Handler(void)
 
 080017be <SysTick_Handler>:
 
-  /* USER CODE END PendSV_IRQn 1 */
-}
-
 /**
   * @brief This function handles System tick timer.
- 80017be:	b580      	push	{r7, lr}
- 80017c0:	af00      	add	r7, sp, #0
   */
 void SysTick_Handler(void)
 {
+ 80017be:	b580      	push	{r7, lr}
+ 80017c0:	af00      	add	r7, sp, #0
   /* USER CODE BEGIN SysTick_IRQn 0 */
- 80017c2:	f000 f92f 	bl	8001a24 <HAL_IncTick>
 
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
+ 80017c2:	f000 f92f 	bl	8001a24 <HAL_IncTick>
   /* USER CODE BEGIN SysTick_IRQn 1 */
+
+  /* USER CODE END SysTick_IRQn 1 */
+}
  80017c6:	bf00      	nop
  80017c8:	bd80      	pop	{r7, pc}
 	...
 
 080017cc <DMA1_Channel7_IRQHandler>:
-/* For the available peripheral interrupt handler names,                      */
-/* please refer to the startup file (startup_stm32f1xx.s).                    */
-/******************************************************************************/
 
 /**
-  * @brief This function handles DMA1 channel2 global interrupt.
+  * @brief This function handles DMA1 channel7 global interrupt.
+  */
+void DMA1_Channel7_IRQHandler(void)
+{
  80017cc:	b580      	push	{r7, lr}
  80017ce:	af00      	add	r7, sp, #0
-  */
-void DMA1_Channel2_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel2_IRQn 0 */
+  /* USER CODE BEGIN DMA1_Channel7_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel7_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart2_tx);
  80017d0:	4802      	ldr	r0, [pc, #8]	; (80017dc <DMA1_Channel7_IRQHandler+0x10>)
  80017d2:	f000 fc51 	bl	8002078 <HAL_DMA_IRQHandler>
+  /* USER CODE BEGIN DMA1_Channel7_IRQn 1 */
 
-  /* USER CODE END DMA1_Channel2_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi1_rx);
-  /* USER CODE BEGIN DMA1_Channel2_IRQn 1 */
+  /* USER CODE END DMA1_Channel7_IRQn 1 */
+}
  80017d6:	bf00      	nop
  80017d8:	bd80      	pop	{r7, pc}
  80017da:	bf00      	nop
@@ -2784,47 +2784,47 @@ void DMA1_Channel2_IRQHandler(void)
 
 080017e0 <USART2_IRQHandler>:
 
-  /* USER CODE END DMA1_Channel2_IRQn 1 */
-}
-
 /**
-  * @brief This function handles DMA1 channel7 global interrupt.
+  * @brief This function handles USART2 global interrupt.
+  */
+void USART2_IRQHandler(void)
+{
  80017e0:	b580      	push	{r7, lr}
  80017e2:	af00      	add	r7, sp, #0
-  */
-void DMA1_Channel7_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel7_IRQn 0 */
+  /* USER CODE BEGIN USART2_IRQn 0 */
+
+  /* USER CODE END USART2_IRQn 0 */
+  HAL_UART_IRQHandler(&huart2);
  80017e4:	4802      	ldr	r0, [pc, #8]	; (80017f0 <USART2_IRQHandler+0x10>)
  80017e6:	f002 f8cd 	bl	8003984 <HAL_UART_IRQHandler>
+  /* USER CODE BEGIN USART2_IRQn 1 */
 
-  /* USER CODE END DMA1_Channel7_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart2_tx);
-  /* USER CODE BEGIN DMA1_Channel7_IRQn 1 */
+  /* USER CODE END USART2_IRQn 1 */
+}
  80017ea:	bf00      	nop
  80017ec:	bd80      	pop	{r7, pc}
  80017ee:	bf00      	nop
  80017f0:	20000b00 	.word	0x20000b00
 
 080017f4 <EXTI4_IRQHandler>:
-}
 
 /**
-  * @brief This function handles USART2 global interrupt.
+  * @brief This function handles EXTI line 4 to 15 interrupts.
   */
-void USART2_IRQHandler(void)
+void EXTI4_IRQHandler(void)
+{
  80017f4:	b580      	push	{r7, lr}
  80017f6:	af00      	add	r7, sp, #0
-{
-  /* USER CODE BEGIN USART2_IRQn 0 */
+  /* USER CODE BEGIN EXTI4_15_IRQn 0 */
 
-  /* USER CODE END USART2_IRQn 0 */
+  /* USER CODE END EXTI4_15_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
  80017f8:	2010      	movs	r0, #16
  80017fa:	f001 f819 	bl	8002830 <HAL_GPIO_EXTI_IRQHandler>
-  HAL_UART_IRQHandler(&huart2);
-  /* USER CODE BEGIN USART2_IRQn 1 */
+  /* USER CODE BEGIN EXTI4_15_IRQn 1 */
 
-  /* USER CODE END USART2_IRQn 1 */
+  /* USER CODE END EXTI4_15_IRQn 1 */
+}
  80017fe:	bf00      	nop
  8001800:	bd80      	pop	{r7, pc}
 

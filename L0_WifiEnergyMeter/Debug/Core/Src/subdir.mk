@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Core/Src/MAX31856.c \
+../Core/Src/bl_interface.c \
 ../Core/Src/bus_comm.c \
 ../Core/Src/conf.c \
 ../Core/Src/conf_board.c \
@@ -21,6 +22,7 @@ C_SRCS += \
 
 OBJS += \
 ./Core/Src/MAX31856.o \
+./Core/Src/bl_interface.o \
 ./Core/Src/bus_comm.o \
 ./Core/Src/conf.o \
 ./Core/Src/conf_board.o \
@@ -37,6 +39,7 @@ OBJS += \
 
 C_DEPS += \
 ./Core/Src/MAX31856.d \
+./Core/Src/bl_interface.d \
 ./Core/Src/bus_comm.d \
 ./Core/Src/conf.d \
 ./Core/Src/conf_board.d \
@@ -55,6 +58,8 @@ C_DEPS += \
 # Each subdirectory must supply rules for building sources it contributes
 Core/Src/MAX31856.o: ../Core/Src/MAX31856.c
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m0plus -std=gnu11 -g3 -DUSE_HAL_DRIVER -DRTDEBUG -DSTM32L073xx -DDEBUG -c -I../Core/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L0xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/MAX31856.d" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
+Core/Src/bl_interface.o: ../Core/Src/bl_interface.c
+	arm-none-eabi-gcc "$<" -mcpu=cortex-m0plus -std=gnu11 -g3 -DUSE_HAL_DRIVER -DRTDEBUG -DSTM32L073xx -DDEBUG -c -I../Core/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L0xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/bl_interface.d" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
 Core/Src/bus_comm.o: ../Core/Src/bus_comm.c
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m0plus -std=gnu11 -g3 -DUSE_HAL_DRIVER -DRTDEBUG -DSTM32L073xx -DDEBUG -c -I../Core/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L0xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/bus_comm.d" -MT"$@" --specs=nano.specs -mfloat-abi=soft -mthumb -o "$@"
 Core/Src/conf.o: ../Core/Src/conf.c

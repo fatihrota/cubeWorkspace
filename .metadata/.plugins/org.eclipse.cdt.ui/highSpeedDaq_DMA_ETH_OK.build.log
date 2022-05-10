@@ -1,0 +1,10 @@
+17:15:29 **** Incremental Build of configuration Debug for project highSpeedDaq_DMA_ETH_OK ****
+make -j15 all 
+arm-none-eabi-size   highSpeedDaq_DMA_ETH_OK.elf 
+   text	   data	    bss	    dec	    hex	filename
+  46852	    488	  25792	  73132	  11dac	highSpeedDaq_DMA_ETH_OK.elf
+Finished building: default.size.stdout
+ 
+
+17:15:30 Build Finished. 0 errors, 0 warnings. (took 440ms)
+

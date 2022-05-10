@@ -30,7 +30,7 @@ Core/Src/MAX31856.o: ../Core/Src/MAX31856.c ../Core/Inc/main.h \
  ../Drivers/STM32L0xx_HAL_Driver/Inc/stm32l0xx_hal_uart_ex.h \
  ../Core/Inc/debug.h ../Core/Inc/conf.h ../Core/Inc/conf_board.h \
  ../Core/Inc/MAX31856.h ../Core/Inc/stpm3x.h ../Core/Inc/ext_cj.h \
- ../Core/Inc/bus_comm.h
+ ../Core/Inc/bus_comm.h ../Core/Inc/bl_interface.h
 
 ../Core/Inc/main.h:
 
@@ -105,3 +105,5 @@ Core/Src/MAX31856.o: ../Core/Src/MAX31856.c ../Core/Inc/main.h \
 ../Core/Inc/ext_cj.h:
 
 ../Core/Inc/bus_comm.h:
+
+../Core/Inc/bl_interface.h:

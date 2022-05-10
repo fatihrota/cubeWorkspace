@@ -87,7 +87,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-	//dbg_printf("RX ALL\r\n");
+	dbg_printf("RX ALL\r\n");
 
 	memcpy(spiRxBuffer, SPI_RxDMABuffer, 512);
 	espMsgRcvd = 1;
@@ -140,7 +140,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   FLASH_If_Init();
   debug_init();
-  dbg_printf("Bootloader init\r\n");
+  dbg_printf("cDAS Bootloader Initialization\r\n");
 
 
   HAL_SPI_Receive_DMA(&hspi1, SPI_RxDMABuffer, 512);
@@ -265,7 +265,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.NSS = SPI_NSS_HARD_INPUT;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -341,16 +341,9 @@ static void MX_DMA_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  /*Configure GPIO pin : ESP_CS_Pin */
-  GPIO_InitStruct.Pin = ESP_CS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(ESP_CS_GPIO_Port, &GPIO_InitStruct);
 
 }
 

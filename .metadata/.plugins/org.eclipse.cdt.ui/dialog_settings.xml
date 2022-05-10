@@ -21,6 +21,8 @@
 		<item key="caseSensitive" value="false"/>
 		<item key="searchFlags" value="227191"/>
 		<list key="previousPatterns">
+			<item value="99"/>
+			<item value="cardType"/>
 			<item value="rt_config_tc_board"/>
 		</list>
 	</section>

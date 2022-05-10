@@ -1,19 +1,10 @@
-14:31:23 **** Build of configuration Debug for project LTC_init ****
-make -j16 all 
-arm-none-eabi-gcc -o "LTC_init.elf" @"objects.list"   -mcpu=cortex-m0 -T"C:\Users\ROTA0101\STM32CubeIDE\workspace_1.3.0\LTC_init\STM32F030RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="LTC_init.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
-Finished building target: LTC_init.elf
- 
+17:15:26 **** Incremental Build of configuration Debug for project LTC_init ****
+make -j15 all 
 arm-none-eabi-size   LTC_init.elf 
-arm-none-eabi-objdump -h -S  LTC_init.elf  > "LTC_init.list"
-arm-none-eabi-objcopy  -O binary  LTC_init.elf  "LTC_init.bin"
    text	   data	    bss	    dec	    hex	filename
   43684	    484	   3940	  48108	   bbec	LTC_init.elf
 Finished building: default.size.stdout
  
-Finished building: LTC_init.bin
- 
-Finished building: LTC_init.list
- 
 
-14:31:24 Build Finished. 0 errors, 0 warnings. (took 1s.56ms)
+17:15:26 Build Finished. 0 errors, 0 warnings. (took 207ms)
 

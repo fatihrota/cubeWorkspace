@@ -1,0 +1,173 @@
+17:12:34 **** Incremental Build of configuration Release for project L0_TC_MUX ****
+make -j15 all 
+arm-none-eabi-gcc "../Core/Src/MAX31856.c" -mcpu=cortex-m0plus -std=gnu11 -DUSE_HAL_DRIVER -DSTM32L073xx -c -I../Core/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L0xx/Include -I../Drivers/CMSIS/Include -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/MAX31856.d" -MT"Core/Src/MAX31856.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/MAX31856.o"
+arm-none-eabi-gcc "../Core/Src/rt_bus_common_commands.c" -mcpu=cortex-m0plus -std=gnu11 -DUSE_HAL_DRIVER -DSTM32L073xx -c -I../Core/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L0xx/Include -I../Drivers/CMSIS/Include -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/rt_bus_common_commands.d" -MT"Core/Src/rt_bus_common_commands.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/rt_bus_common_commands.o"
+In file included from ../Core/Src/MAX31856.c:27:0:
+../Core/Src/MAX31856.c: In function 'max31856_read_conf':
+../Core/Inc/debug.h:56:26: warning: implicit declaration of function 'printf' [-Wimplicit-function-declaration]
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:333:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Read config ch : %d CR0: %d CR1: %d\r\n", ch, data[0], data[1]);
+  ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:333:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Read config ch : %d CR0: %d CR1: %d\r\n", ch, data[0], data[1]);
+  ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:333:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Read config ch : %d CR0: %d CR1: %d\r\n", ch, data[0], data[1]);
+  ^~~~~~~~~~
+../Core/Src/MAX31856.c:333:13: warning: format '%d' expects argument of type 'int', but argument 2 has type 'uint32_t {aka long unsigned int}' [-Wformat=]
+  dbg_printf("Read config ch : %d CR0: %d CR1: %d\r\n", ch, data[0], data[1]);
+             ^
+../Core/Inc/debug.h:56:33: note: in definition of macro 'dbg_printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                                 ^~~~~~~~~~~
+../Core/Src/MAX31856.c: In function 'max31856_write_conf':
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:340:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Write config ch : %d CR0: %d CR1: %d\r\n", ch, data[0], data[1]);
+  ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:340:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Write config ch : %d CR0: %d CR1: %d\r\n", ch, data[0], data[1]);
+  ^~~~~~~~~~
+../Core/Src/MAX31856.c:340:13: warning: format '%d' expects argument of type 'int', but argument 2 has type 'uint32_t {aka long unsigned int}' [-Wformat=]
+  dbg_printf("Write config ch : %d CR0: %d CR1: %d\r\n", ch, data[0], data[1]);
+             ^
+../Core/Inc/debug.h:56:33: note: in definition of macro 'dbg_printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                                 ^~~~~~~~~~~
+../Core/Src/MAX31856.c: In function 'max31856_init_mux_A':
+../Core/Src/MAX31856.c:425:4: warning: incompatible implicit declaration of built-in function 'printf'
+    printf("Chip is found CR0: %d CR1: %d\n", cr0, cr1);
+    ^~~~~~
+../Core/Src/MAX31856.c:425:4: note: include '<stdio.h>' or provide a declaration of 'printf'
+../Core/Src/MAX31856.c:431:2: warning: incompatible implicit declaration of built-in function 'printf'
+  printf("Chip is not found\n");
+  ^~~~~~
+../Core/Src/MAX31856.c:431:2: note: include '<stdio.h>' or provide a declaration of 'printf'
+../Core/Src/MAX31856.c: In function 'max31856_init_mux_B':
+../Core/Src/MAX31856.c:457:4: warning: incompatible implicit declaration of built-in function 'printf'
+    printf("Chip is found CR0: %d CR1: %d\n", cr0, cr1);
+    ^~~~~~
+../Core/Src/MAX31856.c:457:4: note: include '<stdio.h>' or provide a declaration of 'printf'
+../Core/Src/MAX31856.c:463:2: warning: incompatible implicit declaration of built-in function 'printf'
+  printf("Chip is not found\n");
+  ^~~~~~
+../Core/Src/MAX31856.c:463:2: note: include '<stdio.h>' or provide a declaration of 'printf'
+In file included from ../Core/Src/MAX31856.c:27:0:
+../Core/Src/MAX31856.c: In function 'max31856_nonmuxed_sample':
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:603:4: note: in expansion of macro 'dbg_printf'
+    dbg_printf("1Temp Data[%d]: %f\n",ch, tempf);
+    ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:603:4: note: in expansion of macro 'dbg_printf'
+    dbg_printf("1Temp Data[%d]: %f\n",ch, tempf);
+    ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:612:4: note: in expansion of macro 'dbg_printf'
+    dbg_printf("Configuration LOST\n");
+    ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:612:4: note: in expansion of macro 'dbg_printf'
+    dbg_printf("Configuration LOST\n");
+    ^~~~~~~~~~
+../Core/Src/MAX31856.c: In function 'max31856_waitdrdy_mux':
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:816:4: note: in expansion of macro 'dbg_printf'
+    dbg_printf("DRDY1 timeout\r\n");
+    ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:816:4: note: in expansion of macro 'dbg_printf'
+    dbg_printf("DRDY1 timeout\r\n");
+    ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:825:4: note: in expansion of macro 'dbg_printf'
+    dbg_printf("DRDY2 timeout\r\n");
+    ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:825:4: note: in expansion of macro 'dbg_printf'
+    dbg_printf("DRDY2 timeout\r\n");
+    ^~~~~~~~~~
+../Core/Src/MAX31856.c: In function 'tc_init':
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:917:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Init TCs\n");
+  ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:917:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Init TCs\n");
+  ^~~~~~~~~~
+../Core/Src/MAX31856.c:965:4: warning: implicit declaration of function 'max31856_deselect_mux'; did you mean 'max31856_deselect_mux_2'? [-Wimplicit-function-declaration]
+    max31856_deselect_mux();
+    ^~~~~~~~~~~~~~~~~~~~~
+    max31856_deselect_mux_2
+In file included from ../Core/Src/MAX31856.c:27:0:
+../Core/Src/MAX31856.c: In function 'tc_read_mux':
+../Core/Inc/debug.h:56:26: warning: incompatible implicit declaration of built-in function 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:1242:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Channel A: %d Temp : %f  Flag : %d CJ : %f\r\n", channel_A, tempf_A, tempData[channel_A][5], cjReal_A);
+  ^~~~~~~~~~
+../Core/Inc/debug.h:56:26: note: include '<stdio.h>' or provide a declaration of 'printf'
+ #define dbg_printf(...)  printf(__VA_ARGS__ );
+                          ^
+../Core/Src/MAX31856.c:1242:2: note: in expansion of macro 'dbg_printf'
+  dbg_printf("Channel A: %d Temp : %f  Flag : %d CJ : %f\r\n", channel_A, tempf_A, tempData[channel_A][5], cjReal_A);
+  ^~~~~~~~~~
+../Core/Src/MAX31856.c: In function 'tc_init':
+../Core/Src/MAX31856.c:937:34: warning: iteration 2 invokes undefined behavior [-Waggressive-loop-optimizations]
+     gConfig.ch_conf[gMUX_Channels[i]].cr0 |= CR0_CJ_DIS;  /** Disable CJ sensing if MUX is enabled */
+                     ~~~~~~~~~~~~~^~~
+../Core/Src/MAX31856.c:935:4: note: within this loop
+    for (int i=0;i<MAX_TC_CHANNELS;i++)
+    ^~~
+arm-none-eabi-gcc -o "L0_TC_MUX.elf" @"objects.list"   -mcpu=cortex-m0plus -T"C:\Users\ROTA0101\STM32CubeIDE\workspace_1.3.0\L0_TC_MUX\STM32L073RZTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="L0_TC_MUX.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: L0_TC_MUX.elf
+ 
+arm-none-eabi-objdump -h -S  L0_TC_MUX.elf  > "L0_TC_MUX.list"
+arm-none-eabi-objcopy  -O binary  L0_TC_MUX.elf  "L0_TC_MUX.bin"
+arm-none-eabi-size   L0_TC_MUX.elf 
+   text	   data	    bss	    dec	    hex	filename
+  46904	    648	   9032	  56584	   dd08	L0_TC_MUX.elf
+Finished building: default.size.stdout
+ 
+Finished building: L0_TC_MUX.bin
+ 
+Finished building: L0_TC_MUX.list
+ 
+
+17:12:35 Build Finished. 0 errors, 17 warnings. (took 1s.77ms)
+

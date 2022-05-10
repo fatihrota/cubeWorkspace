@@ -1,0 +1,10 @@
+17:15:30 **** Incremental Build of configuration Debug for project highSpeedDaq_DMA_Eth_forloop ****
+make -j15 all 
+arm-none-eabi-size   highSpeedDaq_DMA_Eth_forloop.elf 
+   text	   data	    bss	    dec	    hex	filename
+  59412	    492	  28564	  88468	  15994	highSpeedDaq_DMA_Eth_forloop.elf
+Finished building: default.size.stdout
+ 
+
+17:15:31 Build Finished. 0 errors, 0 warnings. (took 418ms)
+

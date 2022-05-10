@@ -1,5 +1,5 @@
 conf.c:52:6:conf_writeconf	24	static
-conf.c:68:6:conf_checkandload	8	static
-conf.c:80:6:conf_save	8	static
-conf.c:95:6:conf_reload	8	static
-conf.c:102:6:conf_init	8	static
+conf.c:70:6:conf_checkandload	8	static
+conf.c:84:6:conf_save	8	static
+conf.c:99:6:conf_reload	8	static
+conf.c:106:6:conf_init	8	static

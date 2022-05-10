@@ -70,9 +70,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define ESP_CS_Pin GPIO_PIN_4
-#define ESP_CS_GPIO_Port GPIOA
-#define ESP_CS_EXTI_IRQn EXTI4_15_IRQn
 #define TC_CH_3_Pin GPIO_PIN_1
 #define TC_CH_3_GPIO_Port GPIOB
 #define TC_CH_2_Pin GPIO_PIN_2

@@ -36,7 +36,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define APPLICATION_VERS	"1.0.1"
+#define APPLICATION_VERS	101
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -78,21 +78,28 @@ extern void bus_process(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint8_t csTriggered = 0;
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 	if (GPIO_Pin == GPIO_PIN_4) {
 		//__HAL_SPI_ENABLE(&hspi1);
-
+		dbg_printf("GPIO\r\n");
+		csTriggered = 1;
 	}
 }
 
 void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi) {
-	//dbg_printf("RX ALL\r\n");
+//	dbg_printf("RX Main ALL\r\n");
 
-	memcpy(spiRxBuffer, SPI_RxDMABuffer, 512);
-	espMsgRcvd = 1;
-	bus_process();
-	memset(SPI_RxDMABuffer, 0, 512);
+	/*if (csTriggered)
+	{*/
+		memcpy(spiRxBuffer, SPI_RxDMABuffer, 512);
+		espMsgRcvd = 1;
+		bus_process();
+		memset(SPI_RxDMABuffer, 0, 512);
+		csTriggered = 0;
+	//}
+
 }
 
 /* USER CODE END 0 */
@@ -134,10 +141,11 @@ int main(void)
   MX_SPI2_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  conf_init();
   debug_init();
+  conf_init();
   stpm_init();
 
+  dbg_printf("STM32 Application Firmware Initialization\r\n");
   int extcjr = EXTCJ_init();
   dbg_printf("extcj : %d\r\n", extcjr);
   tc_init(extcjr);
@@ -162,8 +170,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  //dbg_printf("Test\r\n");
-	  //HAL_Delay(1000);
+	  /*dbg_printf("Test\r\n");
+	  HAL_Delay(1000);*/
 	  stpm_Process();
 	  max31856_process();
 	  bus_comm_process();
@@ -243,7 +251,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.NSS = SPI_NSS_HARD_INPUT;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -401,12 +409,6 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, TC_CH_3_Pin|TC_CH_2_Pin|TC_CH_1_Pin|TC_CH_0_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pin : ESP_CS_Pin */
-  GPIO_InitStruct.Pin = ESP_CS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(ESP_CS_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pins : TC_CH_3_Pin TC_CH_2_Pin TC_CH_1_Pin TC_CH_0_Pin */
   GPIO_InitStruct.Pin = TC_CH_3_Pin|TC_CH_2_Pin|TC_CH_1_Pin|TC_CH_0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -419,10 +421,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(CJ_ALERT_GPIO_Port, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
 }
 

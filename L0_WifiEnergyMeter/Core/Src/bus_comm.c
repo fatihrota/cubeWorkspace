@@ -28,6 +28,9 @@
 /*============================================================================*/
 
 #define MAX_SPI_DATA 	512
+#define TC_CH_CONF_LENGTH	8
+#define PA_CONF_LENGTH	9
+#define BOARD_TYPE_WEM	100
 
 /*============================================================================*/
 /* Type definitions                                                           */
@@ -44,6 +47,10 @@ extern DMA_HandleTypeDef hdma_spi1_tx;
 extern uint8_t spiRxBuffer[MAX_SPI_DATA];
 extern uint8_t espMsgRcvd;
 uint8_t spiTxBuffer[MAX_SPI_DATA];    /**< SPI TX buffer */
+extern int bus_rd_info_hook(uint8_t *data);
+extern const tAppInfo appinfo;
+extern const uint8_t appsha[20];
+uint32_t gFrameCount = 0;
 
 /*============================================================================*/
 /* Module global data                                                         */
@@ -121,6 +128,13 @@ uint32_t bus_cmd_ping_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *txData,ui
 
 uint32_t bus_cmd_tc_conf_read_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *txData,uint16_t *txLen)
 {
+	uint8_t *data = &txData[0];
+	for (int i=0;i<MAX_TC_CHANNELS;i++)
+	{
+		max31856_read_conf(i,data);
+		data+=TC_CH_CONF_LENGTH;
+	}
+	*txLen = MAX_TC_CHANNELS*TC_CH_CONF_LENGTH;
 	return 0;
 }
 
@@ -128,6 +142,25 @@ uint32_t bus_cmd_tc_conf_read_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *t
 
 uint32_t bus_cmd_tc_conf_write_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *txData,uint16_t *txLen)
 {
+	uint8_t *data = &rxData[0];
+	for (int i=0;i<MAX_TC_CHANNELS;i++)
+	{
+		max31856_write_conf(i,data);
+
+		gBoardConfig.gConfig_tc.ch_conf[i].cr0 = data[0];
+		gBoardConfig.gConfig_tc.ch_conf[i].cr1 = data[1];
+		for (int j=0; j<4; j++)
+		{
+			gBoardConfig.gConfig_tc.ch_conf[i].cjOffset.cjOffBytes[j] = data[j+3];
+		}
+		gBoardConfig.gConfig_tc.ch_conf[i].cj_offset = gBoardConfig.gConfig_tc.ch_conf[i].cjOffset.cjOff / 0.0625;
+		//dbg_printf("Write TC Config ch : %d data[0] : %x - data[1] : %x - data[2] : %x \n", i, data[0],data[1],data[2]);
+		data += TC_CH_CONF_LENGTH;
+	}
+
+	conf_save();
+
+	*txLen = 0;
 	return 0;
 }
 
@@ -135,6 +168,18 @@ uint32_t bus_cmd_tc_conf_write_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *
 
 uint32_t bus_cmd_pa_conf_read_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *txData,uint16_t *txLen)
 {
+	uint8_t *data = &txData[0];
+	data[0] = gBoardConfig.gConfig_pa.value;
+	for (int i=0; i<4; i++)
+	{
+		data[i+1] = gBoardConfig.gConfig_pa.voltCal.voltBytes[i];
+	}
+	for (int j=0; j<4; j++)
+	{
+		data[j+5] = gBoardConfig.gConfig_pa.curCal.curBytes[j];
+	}
+
+	*txLen = PA_CONF_LENGTH;
 	return 0;
 }
 
@@ -142,6 +187,20 @@ uint32_t bus_cmd_pa_conf_read_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *t
 
 uint32_t bus_cmd_pa_conf_write_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *txData,uint16_t *txLen)
 {
+	uint8_t *data = &rxData[0];
+	gBoardConfig.gConfig_pa.value = data[0];
+	for (int i=0; i<4; i++)
+	{
+		gBoardConfig.gConfig_pa.voltCal.voltBytes[i] = data[i+1];
+	}
+	for (int j=0; j<4; j++)
+	{
+		gBoardConfig.gConfig_pa.curCal.curBytes[j] = data[j+5];
+	}
+
+	dbg_printf("Write PA Config data[0] : %x - data[1] : %x - data[5] : %x \n", data[0],data[1],data[5]);
+
+	conf_save();
 	return 0;
 }
 
@@ -149,6 +208,30 @@ uint32_t bus_cmd_pa_conf_write_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *
 
 uint32_t bus_cmd_read_info_handler (uint8_t *rxData,uint16_t rxLen,uint8_t *txData,uint16_t *txLen)
 {
+	uint32_t length = 0;
+
+	for (int i=11;i>=0;i--)
+	{
+		txData[length++] = *((uint8_t *)UID_BASE + i);
+	}
+
+
+	sprintf((char *)&txData[length],"%s %s",__DATE__,__TIME__);
+	length += 32;
+
+	memcpy(&txData[length],&appinfo,sizeof(appinfo));		//Copy App Version
+	length += sizeof(appinfo);
+
+	memcpy(&txData[length],appsha,sizeof(appsha));			// Copy SHA of application
+	length += sizeof(appsha);
+
+	memcpy(&txData[length],&gFrameCount,sizeof(uint32_t));	// Copy Total Received Frame Count
+	length += sizeof(uint32_t);
+
+	txData[length] = BOARD_TYPE_WEM;
+	length += 4;
+
+	*txLen = length;
 	return 0;
 }
 
@@ -378,8 +461,8 @@ void bus_process(void)
 				{
 					if (commands[i].cmd == spiRxBuffer[PRT_CMD_IDX])
 					{
-						uint8_t ret = commands[i].handler(&spiRxBuffer[PRT_DATA_S_IDX], MAX_SPI_DATA, &spiTxBuffer[PRT_DATA_S_IDX+1], &txSize);
-
+						uint8_t ret = commands[i].handler(&spiRxBuffer[PRT_DATA_S_IDX], MAX_SPI_DATA, &spiTxBuffer[PRT_DATA_S_IDX + 1], &txSize);
+						gFrameCount++;
 						spiTxBuffer[PRT_DATA_S_IDX] = PRT_ACK;
 						txSize ++;
 

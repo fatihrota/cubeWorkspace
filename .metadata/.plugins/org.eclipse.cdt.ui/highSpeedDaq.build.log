@@ -1,41 +1,10 @@
-10:27:06 **** Incremental Build of configuration Release for project highSpeedDaq ****
-make -j16 all 
-arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m3 -std=gnu11 -DUSE_HAL_DRIVER -DSTM32F107xC -c -I../Core/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc -I../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32F1xx/Include -I../Drivers/CMSIS/Include -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/posix -I../Middlewares/Third_Party/LwIP/src/include/posix/sys -I../Middlewares/Third_Party/LwIP/system/arch -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/main.o"
-../Core/Src/main.c: In function 'main':
-../Core/Src/main.c:201:14: warning: implicit declaration of function 'udp_new' [-Wimplicit-function-declaration]
-   test_pcb = udp_new();
-              ^~~~~~~
-../Core/Src/main.c:201:12: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-   test_pcb = udp_new();
-            ^
-../Core/Src/main.c:202:3: warning: implicit declaration of function 'udp_bind' [-Wimplicit-function-declaration]
-   udp_bind(test_pcb, &ipaddr, 54321);
-   ^~~~~~~~
-../Core/Src/main.c:231:14: warning: implicit declaration of function 'udp_sendto'; did you mean 'fd_set'? [-Wimplicit-function-declaration]
-     errUDP = udp_sendto(test_pcb, p1, &ipaddr_dest, test_port);
-              ^~~~~~~~~~
-              fd_set
-At top level:
-../Core/Src/main.c:400:13: warning: 'MX_USART2_UART_Init' defined but not used [-Wunused-function]
- static void MX_USART2_UART_Init(void)
-             ^~~~~~~~~~~~~~~~~~~
-../Core/Src/main.c:83:26: warning: 'test_destIp' defined but not used [-Wunused-variable]
- static const ip_addr_t * test_destIp = IP_ADDR_BROADCAST; //or wherever your destination device is
-                          ^~~~~~~~~~~
-arm-none-eabi-gcc -o "highSpeedDaq.elf" @"objects.list"   -mcpu=cortex-m3 -T"C:\Users\ROTA0101\STM32CubeIDE\workspace_1.3.0\highSpeedDaq\STM32F107VCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="highSpeedDaq.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
-Finished building target: highSpeedDaq.elf
- 
-arm-none-eabi-objdump -h -S  highSpeedDaq.elf  > "highSpeedDaq.list"
-arm-none-eabi-objcopy  -O binary  highSpeedDaq.elf  "highSpeedDaq.bin"
+17:15:27 **** Incremental Build of configuration Release for project highSpeedDaq ****
+make -j15 all 
 arm-none-eabi-size   highSpeedDaq.elf 
    text	   data	    bss	    dec	    hex	filename
   28456	    124	  23740	  52320	   cc60	highSpeedDaq.elf
 Finished building: default.size.stdout
  
-Finished building: highSpeedDaq.bin
- 
-Finished building: highSpeedDaq.list
- 
 
-10:27:07 Build Finished. 0 errors, 6 warnings. (took 1s.71ms)
+17:15:27 Build Finished. 0 errors, 0 warnings. (took 418ms)
 
