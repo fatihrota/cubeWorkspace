@@ -1,0 +1,5 @@
+leds.c:11:6:leds_init	40	static
+leds.c:39:6:leds_0_flash	0	static
+leds.c:47:6:leds_1_flash	0	static
+leds.c:55:6:leds_ident	0	static
+leds.c:65:6:leds_counters	0	static

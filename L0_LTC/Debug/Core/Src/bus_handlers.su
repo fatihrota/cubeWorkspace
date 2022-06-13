@@ -1,0 +1,13 @@
+bus_handlers.c:65:5:bus_get_max_ch	8	static
+bus_handlers.c:76:5:bus_get_ch_conf_length	8	static
+bus_handlers.c:88:5:bus_read_ch_sample	16	static
+bus_handlers.c:100:5:bus_read_all_sample	24	static
+bus_handlers.c:116:5:bus_read_ch_conf	24	static
+bus_handlers.c:131:5:bus_read_all_conf	24	static
+bus_handlers.c:148:5:bus_write_ch_conf	40	static
+bus_handlers.c:174:5:bus_write_all_conf	24	static
+bus_handlers.c:189:5:bus_save_conf	8	static
+bus_handlers.c:199:6:bus_entering_bootlaoder_hook	8	static
+bus_handlers.c:208:6:bus_ping_received_hook	8	static
+bus_handlers.c:218:6:bus_reseting_hook	8	static
+bus_handlers.c:229:5:bus_rd_info_hook	16	static

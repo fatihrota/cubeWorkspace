@@ -1,0 +1,2 @@
+crc16.c:41:30:crc_ccitt_byte	16	static
+crc16.c:45:16:crc16	24	static

@@ -1,0 +1,20 @@
+14:59:02 **** Incremental Build of configuration Release for project L0_LTC_Bootloader ****
+make -j15 all 
+arm-none-eabi-gcc "../Core/Src/rt_bus_common_commands.c" -mcpu=cortex-m0plus -std=gnu11 -DUSE_HAL_DRIVER -DRT_BOOTLOADER -DSTM32L073xx -c -I../Core/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc -I../Drivers/STM32L0xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L0xx/Include -I../Drivers/CMSIS/Include -Os -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/rt_bus_common_commands.d" -MT"Core/Src/rt_bus_common_commands.o" --specs=nano.specs -mfloat-abi=soft -mthumb -o "Core/Src/rt_bus_common_commands.o"
+arm-none-eabi-gcc -o "L0_LTC_Bootloader.elf" @"objects.list"   -mcpu=cortex-m0plus -T"C:\Users\ROTA0101\STM32CubeIDE\workspace_1.3.0\L0_LTC_Bootloader\STM32L073RZTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="L0_LTC_Bootloader.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: L0_LTC_Bootloader.elf
+ 
+arm-none-eabi-objdump -h -S  L0_LTC_Bootloader.elf  > "L0_LTC_Bootloader.list"
+arm-none-eabi-objcopy  -O binary  L0_LTC_Bootloader.elf  "L0_LTC_Bootloader.bin"
+arm-none-eabi-size   L0_LTC_Bootloader.elf 
+   text	   data	    bss	    dec	    hex	filename
+  20000	    132	   9484	  29616	   73b0	L0_LTC_Bootloader.elf
+Finished building: default.size.stdout
+ 
+Finished building: L0_LTC_Bootloader.bin
+ 
+Finished building: L0_LTC_Bootloader.list
+ 
+
+14:59:03 Build Finished. 0 errors, 0 warnings. (took 871ms)
+

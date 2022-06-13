@@ -1,0 +1,8 @@
+rt_bus_proto.c:34:10:rt_bus_get_bid	40	static
+rt_bus_proto.c:94:6:rt_bus_init	16	static,ignoring_inline_asm
+rt_bus_proto.c:136:6:rt_bus_proto_frame_pack	16	static
+rt_bus_proto.c:161:6:rt_bus_proto_transmit	8	static
+rt_bus_proto.c:177:6:rt_bus_proto_clear	8	static,ignoring_inline_asm
+rt_bus_proto.c:207:6:rt_bus_proto_process	40	static
+rt_bus_proto.c:281:6:HAL_SYSTICK_Callback	8	static
+rt_bus_proto.c:287:6:rt_bus_proto_idle_dt	24	static
